@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :focus-visible {
+        @apply outline-none ring-2 ring-yellow-500;
+    }
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    @apply text-black font-sans;
+    margin-bottom: 0px !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+img {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    -webkit-font-smoothing: antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+*:hover {
+    @apply transition-all duration-150 ease-in-out;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+input[type="date"],
+input[type="time"],
+input[type="datetime"],
+input[type="datetime-local"],
+input[type="month"],
+input[type="week"],
+input[type="color"],
+textarea,
+select {
+    @apply p-2 text-sm;
+}
+
+@layer components {
+    .input {
+        @apply rounded border-gray-200 focus:border-yellow-500 focus:ring-yellow-500;
+    }
+}
