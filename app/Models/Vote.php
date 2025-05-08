@@ -11,14 +11,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Vote extends Model
 {
     use HasFactory;
-    use SoftDeletes;
     use HasUuids;
 
     protected $guarded = ['id'];
 
-    public function game(): BelongsTo
+    public function question(): BelongsTo
     {
-        return $this->belongsTo(Game::class);
+        return $this->belongsTo(Question::class);
     }
 
     public function watcher(): BelongsTo

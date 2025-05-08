@@ -32,9 +32,9 @@ const showDeleteModal = ref(false)
 const isSlideoverOpen = ref(false)
 
 const form = useForm({
-  title: props.game.title,
-  access_password: props.game.access_password,
-  description: props.game.description,
+  title: props.game.data.title,
+  access_password: props.game.data.access_password,
+  description: props.game.data.description,
 })
 
 const formQuestion = useForm({
@@ -42,15 +42,19 @@ const formQuestion = useForm({
 })
 
 const questionOrder = useForm({
-  order: props.game.questions.map((question) => question),
+  order: props.game.data.questions.map((question) => question),
 })
 
 function createGame() {
   form.post(route('games.store', { show: props.show.id }))
 }
 
+function deleteGame() {
+  form.delete(route('games.destroy', props.game.data))
+}
+
 function createQuestion() {
-  formQuestion.post(route('games.questions.store', props.game), {
+  formQuestion.post(route('games.questions.store', props.game.data), {
     onSuccess: () => {
       isSlideoverOpen.value = false
     },
@@ -65,12 +69,12 @@ function handleQuestionReorder(event) {
 
   // Get the question ID from the new order array
   const questionId = questionOrder.order[newOrder]
-  const question = props.game.questions.find((q) => q.id === questionId)
+  const question = props.game.data.questions.find((q) => q.id === questionId)
   const newOrderIndex = newOrder + 1 // Adding 1 since order_index starts at 1
 
   router.put(
     route('games.questions.update', {
-      game: props.game.slug,
+      game: props.game.data.slug,
       question: questionId,
     }),
     {
@@ -86,7 +90,7 @@ function handleQuestionReorder(event) {
 function toggleQuestionActive(questionId, currentStatus) {
   router.put(
     route('games.questions.update', {
-      game: props.game.slug,
+      game: props.game.data.slug,
       question: questionId,
     }),
     {
@@ -98,7 +102,7 @@ function toggleQuestionActive(questionId, currentStatus) {
 function deleteQuestion(questionId) {
   router.delete(
     route('games.questions.destroy', {
-      game: props.game.slug,
+      game: props.game.data.slug,
       question: questionId,
     }),
     {
@@ -108,8 +112,8 @@ function deleteQuestion(questionId) {
   )
 }
 
-const submit = () => {
-  form.put(route('games.update', props.game))
+function submit() {
+  form.put(route('games.update', props.game.data))
 }
 </script>
 
@@ -118,12 +122,28 @@ const submit = () => {
     <template #header>
       <div class="flex justify-between items-center">
         <Typography class="text-xl font-semibold leading-tight text-gray-800">
-          {{ game.title }}
+          {{ game.data.title }}
         </Typography>
 
-        <Button theme="danger-outline" icon="delete" @click="showDeleteModal = true">
-          Delete
-        </Button>
+        <div class="grid grid-cols-2 gap-4">
+          <button
+            class="ml-auto"
+            theme="danger-outline"
+            icon="delete"
+            @click="showDeleteModal = true"
+          >
+            <Icon icon="delete" size="small" class="text-red-500" />
+            <span class="sr-only">Delete game: {{ game.data.title }}</span>
+          </button>
+
+          <Button
+            :href="route('games.control-panel', game.data.slug)"
+            theme="primary"
+            icon="settings"
+          >
+            Control Panel
+          </Button>
+        </div>
       </div>
     </template>
 
@@ -170,6 +190,10 @@ const submit = () => {
               </div>
             </Stack>
           </form>
+
+          <div class="bg-white w-2/5 p-3">
+            <img :src="game.data.qr_code_url" alt="QR Code" />
+          </div>
         </Stack>
       </div>
 
@@ -183,7 +207,7 @@ const submit = () => {
             </Button>
           </div>
 
-          <template v-if="game.questions.length > 0">
+          <template v-if="game.data.questions.length > 0">
             <draggable
               v-model="questionOrder.order"
               :list="questionOrder.order"
@@ -241,13 +265,13 @@ const submit = () => {
             <Stack space="small">
               <Typography variant="h1">
                 Are you sure you want to delete
-                {{ game.title }}?
+                {{ game.data.title }}?
               </Typography>
               <Typography> This action cannot be undone. </Typography>
             </Stack>
             <div class="flex justify-end space-x-3">
               <Button theme="subdued" @click="showDeleteModal = false"> Cancel </Button>
-              <Button theme="danger" @click="handleDelete"> Delete </Button>
+              <Button theme="danger" @click="deleteGame"> Delete </Button>
             </div>
           </Stack>
         </div>

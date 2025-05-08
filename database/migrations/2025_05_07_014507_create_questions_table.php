@@ -17,7 +17,7 @@ return new class extends Migration
             $table->text('question')->index();
             $table->foreignUuid('game_id')->constrained('games');
             $table->enum('status', QuestionStatus::getStatuses())->index()
-                ->default(QuestionStatus::ACTIVE);
+                ->default(QuestionStatus::PENDING);
             $table->boolean('is_active')->default(true);
             $table->foreignUuid('host_id')->constrained('hosts');
             $table->integer('order_index')->default(0);

@@ -4,6 +4,7 @@ namespace App\Enums;
 
 enum QuestionStatus: string
 {
+    case PENDING = 'pending';
     case ACTIVE = 'active';
     case CLOSED = 'closed';
     case REVEALED = 'revealed';
@@ -16,6 +17,7 @@ enum QuestionStatus: string
     public function getLabel(): string
     {
         return match ($this) {
+            self::PENDING => 'Pending',
             self::ACTIVE => 'Active',
             self::CLOSED => 'Closed',
             self::REVEALED => 'Revealed',

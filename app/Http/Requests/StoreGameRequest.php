@@ -16,7 +16,7 @@ class StoreGameRequest extends FormRequest
     return [
       'title' => ['required', 'string', 'max:255'],
       'description' => ['nullable', 'string'],
-      'access_password' => ['nullable', 'string', 'max:255'],
+      'access_code' => ['nullable', 'string', 'max:255'],
     ];
   }
 }

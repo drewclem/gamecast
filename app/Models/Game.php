@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use App\Enums\GameStatus;
+use App\Services\QrCodeService;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -27,6 +29,14 @@ class Game extends Model
         'status' => GameStatus::class,
     ];
 
+    protected static function booted(): void
+    {
+        static::created(function (Game $game) {
+            $qrCodeService = app(QrCodeService::class);
+            $qrCodeService->generateGameJoinQrCode($game);
+        });
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';
@@ -47,9 +57,9 @@ class Game extends Model
         return $this->hasMany(Watcher::class);
     }
 
-    public function activeQuestion()
+    public function activeQuestion(): BelongsTo
     {
-        return $this->questions()->where('status', 'active')->first();
+        return $this->belongsTo(Question::class, 'current_question_id');
     }
 
     public function isLive(): bool
@@ -74,6 +84,29 @@ class Game extends Model
         return Vote::whereIn('question_id', $this->questions()->pluck('id'))
             ->where('choice', 2)
             ->count();
+    }
+
+    public function getQrCode(): string
+    {
+        return '/storage/games/' . $this->id . '/join-qr.png';
+    }
+
+    public function getQrCodeUrlAttribute(): string
+    {
+        return asset('storage/games/' . $this->id . '/join-qr.png');
+    }
+
+    public function regenerateQrCode(): string
+    {
+        $qrCodeService = app(QrCodeService::class);
+
+        // First delete existing QR code if it exists
+        $path = "qrcodes/game-{$this->slug}.png";
+        if (Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
+        }
+
+        return $qrCodeService->generateGameJoinQrCode($this);
     }
 
     public function scopeSearch(Builder $query, string $search): Builder

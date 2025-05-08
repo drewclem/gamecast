@@ -28,7 +28,7 @@ const isSlideoverOpen = ref(false)
 
 const form = useForm({
   title: '',
-  access_password: '',
+  access_code: '',
   description: '',
 })
 
@@ -56,7 +56,7 @@ function navigateToGame(slug) {
         <Stack space="medium">
           <Typography variant="body-lg"> You haven't created any games yet. </Typography>
           <div>
-            <Button icon="add" @click="isSlideoverOpen = true"> Create Episode </Button>
+            <Button icon="add" @click="isSlideoverOpen = true"> Create Game </Button>
           </div>
         </Stack>
       </div>
@@ -102,11 +102,11 @@ function navigateToGame(slug) {
                 required
               />
               <FormTextInput
-                label="Password"
-                name="access_password"
+                label="Access Code"
+                name="access_code"
                 helper="This password will be used to protect the episode. It will be required to join."
-                v-model="form.access_password"
-                :error="form.errors.access_password"
+                v-model="form.access_code"
+                :error="form.errors.access_code"
                 required
               />
               <FormTextarea

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Game;
 use Inertia\Inertia;
+use App\Http\Resources\GameResource;
 use App\Http\Requests\EditGameRequest;
 
 class EditGameController extends Controller
@@ -13,7 +14,7 @@ class EditGameController extends Controller
     $game->load('questions.host.user');
 
     return Inertia::render('Games/EditGame', [
-      'game' => $game,
+      'game' => GameResource::make($game),
     ]);
   }
 }
