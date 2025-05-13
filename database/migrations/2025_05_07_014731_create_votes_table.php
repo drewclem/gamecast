@@ -16,10 +16,10 @@ return new class extends Migration
             $table->foreignUuid('game_id')->constrained('games');
             $table->foreignUuid('watcher_id')->constrained('watchers');
             $table->foreignUuid('question_id')->constrained('questions');
-            $table->tinyInteger('choice')->index();
+            $table->foreignUuid('host_id')->constrained('hosts');
             $table->timestamps();
 
-            $table->unique(['game_id', 'watcher_id', 'question_id']);
+            $table->unique(['watcher_id', 'question_id']);
         });
     }
 

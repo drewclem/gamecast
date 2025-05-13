@@ -1,5 +1,6 @@
-import { ref, computed } from 'vue'
-import { router } from '@inertiajs/vue3'
+// resources/js/Composables/useQuestionState.js
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { router, usePage } from '@inertiajs/vue3'
 
 const QuestionStatus = {
   PENDING: 'pending',
@@ -8,25 +9,44 @@ const QuestionStatus = {
   REVEALED: 'revealed',
 }
 
-export function useQuestionState(gameSlug, initialQuestion = null) {
-  // Initialize with null if no initial question
-  const currentQuestion = ref(initialQuestion || null)
-  const votingStatus = ref(initialQuestion?.status || QuestionStatus.CLOSED)
-  const totalVotes = ref(0)
-  const host1Votes = ref(0)
-  const host2Votes = ref(0)
+export function useQuestionState(gameSlug, gameId) {
+  const page = usePage()
 
-  // Timer state
+  const pageProps = computed(() => page.props)
+
+  const currentQuestion = ref(pageProps.value.activeQuestion || null)
+  const votingStatus = ref(pageProps.value.activeQuestion?.status || QuestionStatus.CLOSED)
+  const voteCounts = ref(Object.values(pageProps.value.voteCounts)[0] || { byHost: {}, total: 0 })
+  const loading = ref(false)
+
+  // Watch for changes in page props and update our refs
+  watch(
+    pageProps,
+    (newProps) => {
+      if (newProps.activeQuestion) {
+        loading.value = true
+        currentQuestion.value = newProps.activeQuestion
+        votingStatus.value = newProps.activeQuestion.status
+        loading.value = false
+      }
+
+      if (newProps.voteCounts) {
+        voteCounts.value = newProps.voteCounts
+      }
+    },
+    { deep: true }
+  )
+
   const timerRunning = ref(false)
   const timeRemaining = ref(0)
   let timerInterval = null
 
-  // Computed properties for status checks
+  let echoChannel = null
+
   const votingOpen = computed(() => votingStatus.value === QuestionStatus.ACTIVE)
   const votingClosed = computed(() => votingStatus.value === QuestionStatus.CLOSED)
   const resultsRevealed = computed(() => votingStatus.value === QuestionStatus.REVEALED)
 
-  // Timer functions
   function startTimer(seconds) {
     if (timerRunning.value) return
 
@@ -56,7 +76,60 @@ export function useQuestionState(gameSlug, initialQuestion = null) {
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
-  // Update question state
+  function setupEventListeners(gameId) {
+    console.log('setting up event listeners for game', gameId)
+    echoChannel = window.Echo.channel(`game.${gameId}`)
+
+    echoChannel.listen('QuestionVotesUpdated', (e) => {
+      console.log('QuestionVotesUpdated in questionState:', e)
+
+      if (currentQuestion.value && currentQuestion.value.id === e.question_id) {
+        voteCounts.value = {
+          byHost: e.votes_by_host,
+          total: e.total_votes,
+        }
+      }
+    })
+
+    echoChannel.listen('QuestionStatusChanged', (e) => {
+      console.log('QuestionStatusChanged in questionState:', e)
+
+      if (currentQuestion.value && currentQuestion.value.id === e.id) {
+        currentQuestion.value.status = e.status
+        votingStatus.value = e.status
+
+        if (e.status === QuestionStatus.REVEALED) {
+          voteCounts.value = e.vote_counts
+        }
+
+        if (e.winners) {
+          currentQuestion.value.winners = e.winners
+        }
+      }
+    })
+
+    echoChannel.listen('CurrentQuestionChanged', (e) => {
+      console.log('CurrentQuestionChanged in questionState:', e)
+
+      currentQuestion.value = e.question
+
+      if (e.question) {
+        loading.value = true
+        votingStatus.value = e.question.status
+
+        // Only reset vote counts if there are no votes for this question
+        if (!e.question.votes_count) {
+          voteCounts.value = { byHost: {}, total: 0 }
+        } else {
+          voteCounts.value = e.question.vote_counts || { byHost: {}, total: 0 }
+        }
+        loading.value = false
+      } else {
+        currentQuestion.value = null
+      }
+    })
+  }
+
   async function updateQuestionState(questionId, status) {
     return router.put(
       route('games.questions.update', { game: gameSlug, question: questionId }),
@@ -65,18 +138,12 @@ export function useQuestionState(gameSlug, initialQuestion = null) {
       },
       {
         preserveState: true,
-        onSuccess: (page) => {
-          if (page.props.activeQuestion) {
-            currentQuestion.value = page.props.activeQuestion
-            votingStatus.value = page.props.activeQuestion.status
-          }
-        },
       }
     )
   }
 
-  // Set active question
   async function setActiveQuestion(questionId) {
+    loading.value = true
     stopTimer()
 
     return router.put(
@@ -85,51 +152,69 @@ export function useQuestionState(gameSlug, initialQuestion = null) {
         current_question_id: questionId,
       },
       {
-        preserveState: true,
-        onSuccess: async (page) => {
-          currentQuestion.value = page.props.activeQuestion
-          votingStatus.value = QuestionStatus.ACTIVE
-          totalVotes.value = 0
-          host1Votes.value = 0
-          host2Votes.value = 0
-
-          // Update the new question's state
+        onSuccess: async () => {
           await updateQuestionState(questionId, QuestionStatus.ACTIVE)
+          loading.value = false
         },
       }
     )
   }
 
-  // Open voting
   async function openVoting() {
     if (!currentQuestion.value) return
-    return updateQuestionState(currentQuestion.value.id, QuestionStatus.ACTIVE)
+    loading.value = true
+    const result = await updateQuestionState(currentQuestion.value.id, QuestionStatus.ACTIVE)
+    loading.value = false
+    return result
   }
 
-  // Close voting
   async function closeVoting() {
     if (!currentQuestion.value) return
+    loading.value = true
     stopTimer()
-    return updateQuestionState(currentQuestion.value.id, QuestionStatus.CLOSED)
+    const result = await updateQuestionState(currentQuestion.value.id, QuestionStatus.CLOSED)
+    loading.value = false
+    return result
   }
 
-  // Reveal results
   async function revealResults() {
     if (!currentQuestion.value) return
-    return updateQuestionState(currentQuestion.value.id, QuestionStatus.REVEALED)
+    loading.value = true
+    const result = await updateQuestionState(currentQuestion.value.id, QuestionStatus.REVEALED)
+    loading.value = false
+    return result
   }
+
+  onMounted(() => {
+    const gameId = pageProps.value.game?.data?.id
+
+    if (gameId) {
+      setupEventListeners(gameId)
+    } else {
+      console.warn('No game ID available for Echo setup')
+    }
+  })
+
+  onBeforeUnmount(() => {
+    stopTimer()
+
+    if (echoChannel) {
+      echoChannel.stopListening('QuestionVotesUpdated')
+      echoChannel.stopListening('QuestionStatusChanged')
+      echoChannel.stopListening('CurrentQuestionChanged')
+    }
+  })
 
   return {
     currentQuestion,
     votingStatus,
-    totalVotes,
-    host1Votes,
-    host2Votes,
+    voteCounts,
     votingOpen,
     votingClosed,
     resultsRevealed,
     timerRunning,
     timeRemaining,
+    loading,
     startTimer,
     stopTimer,
     formatTime,

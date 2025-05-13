@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { useForm } from '@inertiajs/vue3'
+import { useForm, Head } from '@inertiajs/vue3'
 
 import Card from '@/Stencil/Card.vue'
 import Typography from '@/Stencil/Typography.vue'
@@ -19,7 +19,7 @@ const gameData = computed(() => props.game.data)
 
 const form = useForm({
   gamertag: '',
-  accessCode: '',
+  access_code: '',
 })
 
 function joinGame() {
@@ -28,6 +28,7 @@ function joinGame() {
 </script>
 
 <template>
+  <Head :title="`Join ${gameData.title}`" />
   <div class="flex flex-col items-center justify-center min-h-screen bg-yellow-100 p-6">
     <Card class="w-full md:max-w-[300px]">
       <Stack>
@@ -46,9 +47,9 @@ function joinGame() {
             />
             <FormInput
               label="Access Code"
-              v-model="form.accessCode"
+              v-model="form.access_code"
               :required="true"
-              :error="form.errors.accessCode"
+              :error="form.errors.access_code"
             />
 
             <Button

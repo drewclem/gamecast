@@ -6,11 +6,14 @@ use App\Http\Controllers\JoinGameController;
 use App\Http\Controllers\PlayGameController;
 use App\Http\Controllers\EnterGameController;
 use App\Http\Controllers\IndexGameController;
+use App\Http\Controllers\ShareGameController;
 use App\Http\Controllers\StoreGameController;
+use App\Http\Controllers\StoreVoteController;
 use App\Http\Controllers\UpdateGameController;
 use App\Http\Controllers\DestroyGameController;
 use App\Http\Controllers\ControlPanelGameController;
 use App\Http\Controllers\StoreGameQuestionController;
+use App\Http\Controllers\ResetQuestionVotesController;
 use App\Http\Controllers\UpdateGameQuestionController;
 use App\Http\Controllers\DestroyGameQuestionController;
 
@@ -29,4 +32,9 @@ Route::middleware(['auth', 'verified'])->prefix('/games')->group(function () {
   Route::get('/{game}/join', JoinGameController::class)->name('games.join')->withoutMiddleware(['auth', 'verified']);
   Route::post('/{game}/enter', EnterGameController::class)->name('games.enter')->withoutMiddleware(['auth', 'verified']);
   Route::get('/{game}/play', PlayGameController::class)->name('games.play')->withoutMiddleware(['auth', 'verified']);
+
+  Route::post('/{game}/questions/{question}/vote', StoreVoteController::class)->name('games.questions.vote')->withoutMiddleware(['auth', 'verified']);
+  Route::post('/{game}/questions/{question}/reset-votes', ResetQuestionVotesController::class)->name('games.questions.reset-votes')->withoutMiddleware(['auth', 'verified']);
+
+  Route::get('/{game}/share', ShareGameController::class)->name('games.share')->withoutMiddleware(['auth', 'verified']);
 });

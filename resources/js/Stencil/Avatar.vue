@@ -57,6 +57,8 @@ const sizeClasses = computed(() => {
       return 'h-12 w-12'
     case 'xlarge':
       return 'h-16 w-16'
+    case 'xxlarge':
+      return 'h-20 w-20'
     default:
       return 'h-[45px] w-[45px]'
   }

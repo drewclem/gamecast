@@ -33,7 +33,7 @@ const isSlideoverOpen = ref(false)
 
 const form = useForm({
   title: props.game.data.title,
-  access_password: props.game.data.access_password,
+  access_code: props.game.data.access_code,
   description: props.game.data.description,
 })
 
@@ -99,11 +99,24 @@ function toggleQuestionActive(questionId, currentStatus) {
   )
 }
 
-function deleteQuestion(questionId) {
+const showDeleteQuestionModal = ref(false)
+const questionToDelete = ref({})
+
+function openDeleteQuestionModal(question) {
+  questionToDelete.value = question
+  showDeleteQuestionModal.value = true
+}
+
+function closeDeleteQuestionModal() {
+  showDeleteQuestionModal.value = false
+  questionToDelete.value = {}
+}
+
+function deleteQuestion() {
   router.delete(
     route('games.questions.destroy', {
       game: props.game.data.slug,
-      question: questionId,
+      question: questionToDelete.value.id,
     }),
     {
       preserveScroll: true,
@@ -118,6 +131,7 @@ function submit() {
 </script>
 
 <template>
+  <Head :title="game.data.title" />
   <AuthenticatedLayout>
     <template #header>
       <div class="flex justify-between items-center">
@@ -173,9 +187,9 @@ function submit() {
 
               <div>
                 <FormTextInput
-                  v-model="form.access_password"
-                  label="Access Password"
-                  :error="form.errors.access_password"
+                  v-model="form.access_code"
+                  label="Access Code"
+                  :error="form.errors.access_code"
                 />
               </div>
 
@@ -203,7 +217,7 @@ function submit() {
             <Typography variant="h2"> Questions </Typography>
 
             <Button icon="add" theme="primary-outline" @click="isSlideoverOpen = true">
-              Create Question
+              Add Question
             </Button>
           </div>
 
@@ -237,7 +251,7 @@ function submit() {
                       />
                     </div> -->
                     <button
-                      @click="deleteQuestion(question.id)"
+                      @click="openDeleteQuestionModal(question)"
                       class="text-red-500 opacity-60 hover:opacity-100"
                     >
                       <Icon icon="delete" size="xsmall" />
@@ -256,6 +270,31 @@ function submit() {
         </Stack>
       </div>
     </div>
+
+    <teleport to="body">
+      <Modal
+        title="Delete Qestion"
+        :isOpen="showDeleteQuestionModal"
+        @close="closeDeleteQuestionModal"
+      >
+        <div class="flex space-x-6 w-full">
+          <Icon icon="danger" class="text-red-500" size="large" />
+          <Stack class="w-full">
+            <Stack space="small">
+              <Typography variant="h1">
+                Are you sure you want to delete:
+                <span class="font-semibold">{{ questionToDelete.question }} </span>?
+              </Typography>
+              <Typography> This action cannot be undone. </Typography>
+            </Stack>
+            <div class="flex justify-end space-x-3">
+              <Button theme="subdued" @click="closeDeleteQuestionModal"> Cancel </Button>
+              <Button theme="danger" @click="deleteQuestion"> Delete </Button>
+            </div>
+          </Stack>
+        </div>
+      </Modal>
+    </teleport>
 
     <teleport to="body">
       <Modal title="Delete Assessment" :isOpen="showDeleteModal" @close="showDeleteModal = false">
@@ -279,7 +318,7 @@ function submit() {
     </teleport>
 
     <teleport to="body">
-      <SlideOut title="Create Question" :isOpen="isSlideoverOpen" @close="isSlideoverOpen = false">
+      <SlideOut title="Add Question" :isOpen="isSlideoverOpen" @close="isSlideoverOpen = false">
         <form @submit.prevent="createQuestion">
           <Stack>
             <FormTextInput

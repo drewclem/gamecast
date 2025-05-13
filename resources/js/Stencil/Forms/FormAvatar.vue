@@ -1,11 +1,13 @@
 <template>
   <Stack space="xsmall">
     <Stack space="small">
-      <Typography as="label" variant="label" :for="id">
-        {{ label }}
-        <span v-if="required" class="text-red-500">*</span>
-        <span v-else class="text-xs text-gray-500"> (optional)</span>
-      </Typography>
+      <Stack space="xxsmall">
+        <Typography as="label" variant="label" :for="id" :class="{ 'sr-only': hideLabel }">
+          {{ label }}
+          <span v-if="required" class="text-red-500">*</span>
+        </Typography>
+        <Typography v-if="helper" variant="body-small" class="opacity-60">{{ helper }}</Typography>
+      </Stack>
 
       <ImageUpload
         :modelValue="modelValue"
@@ -54,6 +56,10 @@ const props = defineProps({
   withSaveAction: {
     type: Boolean,
     default: false,
+  },
+  helper: {
+    type: String,
+    default: null,
   },
 })
 

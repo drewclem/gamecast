@@ -26,7 +26,7 @@ class UpdateGameRequest extends FormRequest
             'status' => ['sometimes', 'string', 'in:upcoming,live,ended'],
             'title' => ['sometimes', 'nullable', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'access_password' => ['sometimes', 'string', 'max:255'],
+            'access_code' => ['sometimes', 'string', 'max:255'],
         ];
     }
 }

@@ -8,6 +8,7 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -57,9 +58,9 @@ class Game extends Model
         return $this->hasMany(Watcher::class);
     }
 
-    public function activeQuestion(): BelongsTo
+    public function activeQuestion(): HasOne
     {
-        return $this->belongsTo(Question::class, 'current_question_id');
+        return $this->hasOne(Question::class, 'id', 'current_question_id');
     }
 
     public function isLive(): bool

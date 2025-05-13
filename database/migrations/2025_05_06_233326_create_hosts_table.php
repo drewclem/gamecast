@@ -15,6 +15,8 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('show_id')->constrained('shows');
             $table->string('name')->nullable();
+            $table->string('avatar')->nullable();
+            $table->string('color')->nullable();
             $table->foreignId('user_id')->constrained('users');
             $table->timestamps();
         });

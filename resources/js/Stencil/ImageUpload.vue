@@ -72,11 +72,11 @@
               isDragging
                 ? 'Drop your image here'
                 : preview
-                  ? 'Click the image to change your profile picture'
-                  : 'Drop your image here, or click to browse'
+                ? 'Click the image to change your profile picture'
+                : 'Drop your image here, or click to browse'
             }}
           </p>
-          <p class="text-xs text-gray-400">Supports JPG or PNG up to 5MB</p>
+          <p class="text-xs text-gray-400">Supports JPG or PNG up to 2MB</p>
 
           <!-- Error Message -->
           <p v-if="error" class="mt-2 text-sm text-red-600 flex items-center gap-1">

@@ -42,6 +42,7 @@ function navigateToGame(slug) {
 </script>
 
 <template>
+  <Head title="Games" />
   <AuthenticatedLayout>
     <template #header>
       <div class="flex justify-between items-center">

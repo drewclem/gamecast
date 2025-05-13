@@ -3,18 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Game;
-use Inertia\Inertia;
 use App\Models\Watcher;
-use Illuminate\Http\Request;
-use App\Http\Resources\GameResource;
+use App\Http\Requests\EnterGameRequest;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
 
 class EnterGameController extends Controller
 {
     /**
      * Handle the incoming request.
      */
-    public function __invoke(Request $request, Game $game)
+    public function __invoke(EnterGameRequest $request, Game $game)
     {
         $watcher = Watcher::firstOrCreate([
             'game_id' => $game->id,

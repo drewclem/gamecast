@@ -1,8 +1,7 @@
 // resources/js/Pages/Games/Session.vue
 <script setup>
+import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
 import { Head, router } from '@inertiajs/vue3'
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
-import { usePoll } from '@inertiajs/vue3'
 import GuestLayout from '@/Layouts/GuestLayout.vue'
 import { useQuestionState } from '@/Composables/useQuestionState'
 import { useGameUpdates } from '@/Composables/useGameUpdates'
@@ -12,7 +11,7 @@ import Stack from '@/Stencil/Stack.vue'
 import Card from '@/Stencil/Card.vue'
 import Button from '@/Stencil/Button.vue'
 import Icon from '@/Stencil/Icon.vue'
-
+import Timer from '@/Stencil/Timer.vue'
 const props = defineProps({
   game: {
     type: Object,
@@ -22,134 +21,162 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  activeQuestion: {
-    type: Object,
-    required: true,
-  },
-  activeWatchers: {
-    type: Number,
+  hosts: {
+    type: Array,
     required: true,
   },
 })
 
-// Set up question state management
+// Set up game updates with real-time broadcasting
+const { data } = useGameUpdates(props.game.data.id)
+
+// Set up question state management with real-time broadcasting
 const {
   currentQuestion,
   votingStatus,
-  totalVotes,
-  host1Votes,
-  host2Votes,
+  voteCounts,
   votingOpen,
   votingClosed,
   resultsRevealed,
-} = useQuestionState(props.game.data.slug, props.activeQuestion)
+  timerRunning,
+  timeRemaining,
+  loading,
+  startTimer,
+  stopTimer,
+  formatTime,
+} = useQuestionState(props.game.data.slug, props.game.data.id)
 
 // Local state
-const hasVoted = ref(props.watcher.hasVoted)
+const hasVoted = computed(() =>
+  props.watcher.votes.some((vote) => vote.question_id === currentQuestion.value.id)
+)
 const isVoting = ref(false)
 const voteCast = ref(null)
 const showVoteAnimation = ref(false)
+const isRevealAnimating = ref(false)
 
-// Watch for changes in the active question
-// watch(
-//   () => data.activeQuestion,
-//   (newQuestion) => {
-//     if (newQuestion) {
-//       currentQuestion.value = newQuestion
-//       votingStatus.value = newQuestion.status
-//       // Reset vote counts when question changes
-//       host1Votes.value = 0
-//       host2Votes.value = 0
-//       totalVotes.value = 0
-//     }
-//   },
-//   { immediate: true }
-// )
+// Watch for reveal event
+watch(resultsRevealed, (newValue, oldValue) => {
+  // If transitioning from not revealed to revealed, trigger animation
+  if (newValue && !oldValue) {
+    triggerRevealAnimation()
+  }
+})
 
-// // Watch for changes in vote counts
-// watch(
-//   () => data.value?.voteCounts,
-//   (newVotes) => {
-//     if (newVotes && currentQuestion.value) {
-//       const questionVotes = newVotes[currentQuestion.value.id]
-//       if (questionVotes) {
-//         host1Votes.value = questionVotes.host1 || 0
-//         host2Votes.value = questionVotes.host2 || 0
-//         totalVotes.value = host1Votes.value + host2Votes.value
-//       }
-//     }
-//   },
-//   { immediate: true }
-// )
+// Sync question from game updates
+watch(
+  () => data.activeQuestion,
+  (newQuestion) => {
+    if (newQuestion && currentQuestion.value?.id !== newQuestion.id) {
+      console.log('Question updated from broadcast:', newQuestion)
+      // Reset vote-related state when question changes
+      hasVoted.value = false
+      voteCast.value = null
+    }
+  }
+)
 
-// // Watch for changes in active watchers
-// watch(
-//   () => data.value?.activeWatchers,
-//   (newCount) => {
-//     if (typeof newCount === 'number') {
-//       props.activeWatchers = newCount
-//     }
-//   },
-//   { immediate: true }
-// )
+// Trigger results reveal animation
+function triggerRevealAnimation() {
+  // Start the reveal animation
+  isRevealAnimating.value = true
+
+  // Store the actual vote counts
+  const currentVotes = voteCounts?.byHost || {}
+  const tempVotes = { ...currentVotes }
+
+  // Short delay for animation effect
+  setTimeout(() => {
+    // Show a "3, 2, 1" countdown effect
+    let count = 3
+    const countInterval = setInterval(() => {
+      if (count <= 0) {
+        clearInterval(countInterval)
+
+        // Animate the results back in
+        setTimeout(() => {
+          // Restore actual vote counts
+          voteCounts.byHost = tempVotes
+          voteCounts.total = Object.values(tempVotes).reduce((a, b) => a + b, 0)
+
+          // End animation state after results are shown
+          setTimeout(() => {
+            isRevealAnimating.value = false
+          }, 1500)
+        }, 500)
+      } else {
+        count--
+      }
+    }, 800)
+  }, 500)
+}
+
+function submitVote(hostId) {
+  return router.post(
+    route('games.questions.vote', {
+      game: props.game.data.slug,
+      question: currentQuestion.value.id,
+    }),
+    {
+      host_id: hostId,
+    }
+  )
+}
 
 // Cast a vote function
-function castVote(hostNumber) {
+async function castVote(hostNumber) {
   if (!votingOpen.value || hasVoted.value || isVoting.value) return
 
   isVoting.value = true
   voteCast.value = hostNumber
-  showVoteAnimation.value = true
 
-  // Hide animation after a delay
-  setTimeout(() => {
-    showVoteAnimation.value = false
-  }, 1500)
+  // Submit vote using the composable method
+  const success = await submitVote(hostNumber)
 
-  // Submit vote to server
-  router.post(
-    route('games.vote', {
-      game: props.game.data.slug,
-      question: currentQuestion.value.id,
-    }),
-    { choice: hostNumber },
-    {
-      preserveState: true,
-      onSuccess: () => {
-        hasVoted.value = true
-        isVoting.value = false
-      },
-      onError: () => {
-        isVoting.value = false
-        showVoteAnimation.value = false
-      },
-    }
-  )
+  if (success) {
+    hasVoted.value = true
+  }
+
+  isVoting.value = false
 }
 
 // Activity tracking - regularly ping to show we're still active
-let activityInterval
+// let activityInterval
 
-function updateActivity() {
-  router.post(
-    route('games.update-activity', props.game.data.slug),
-    {},
-    {
-      preserveState: true,
-    }
-  )
+// function updateActivity() {
+//   router.post(
+//     route('games.update-activity', props.game.data.slug),
+//     {},
+//     {
+//       preserveState: true,
+//     }
+//   )
+// }
+
+// onMounted(() => {
+//   // Set up activity tracking - this is still needed for server-side presence
+//   updateActivity()
+//   activityInterval = setInterval(updateActivity, 30000) // Every 30 seconds
+// })
+
+// onBeforeUnmount(() => {
+//   if (activityInterval) {
+//     clearInterval(activityInterval)
+//   }
+// })
+
+function getVotesForHost(hostId) {
+  return voteCounts.value?.byHost?.[hostId] || 0
 }
 
-onMounted(() => {
-  // Set up activity tracking
-  updateActivity()
-  activityInterval = setInterval(updateActivity, 30000) // Every 30 seconds
-})
+function getVotePercentage(hostId) {
+  const total = voteCounts.value?.total || 0
+  if (!total) return 0
+  return Math.round(((voteCounts.value?.byHost?.[hostId] || 0) / total) * 100)
+}
 
-onBeforeUnmount(() => {
-  if (activityInterval) {
-    clearInterval(activityInterval)
-  }
+const isTie = computed(() => {
+  return currentQuestion.value?.winners?.length > 1
 })
 </script>
 
@@ -164,7 +191,7 @@ onBeforeUnmount(() => {
           <Typography variant="h1">{{ game.data.title }}</Typography>
           <div class="flex items-center justify-between">
             <Typography variant="body-small" class="text-gray-600">
-              {{ activeWatchers }} active {{ activeWatchers === 1 ? 'watcher' : 'watchers' }}
+              {{ data.activeWatchers }} active watcher(s)
             </Typography>
             <Typography variant="body-small" class="text-gray-600">
               Joined as: {{ watcher.gamertag }}
@@ -189,105 +216,192 @@ onBeforeUnmount(() => {
       <!-- Question Card -->
       <Card v-else padding="medium" class="mb-6">
         <Stack space="medium">
-          <!-- Status Badge -->
-          <div class="text-center">
-            <Typography
-              variant="body-small"
-              class="inline-flex items-center px-2.5 py-0.5 rounded-full"
-              :class="{
-                'bg-green-100 text-green-800': votingOpen,
-                'bg-yellow-100 text-yellow-800': votingClosed && !resultsRevealed,
-                'bg-blue-100 text-blue-800': resultsRevealed,
-              }"
-            >
-              {{
-                votingOpen ? 'Voting Open' : resultsRevealed ? 'Results Revealed' : 'Voting Closed'
-              }}
-            </Typography>
+          <!-- Loading State -->
+          <div v-if="loading" class="text-center py-8">
+            <Icon icon="loading" size="large" class="text-gray-400 animate-spin" />
+            <Typography variant="body" class="text-gray-600 mt-2">Loading...</Typography>
           </div>
 
           <!-- Question Content -->
-          <Typography variant="h2" class="text-center">
-            {{ currentQuestion.question }}
-          </Typography>
+          <template v-else>
+            <!-- Status Badge -->
+            <div class="text-center">
+              <Typography
+                variant="body-small"
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full"
+                :class="{
+                  'bg-green-100 text-green-800': votingOpen,
+                  'bg-yellow-100 text-yellow-800': votingClosed && !resultsRevealed,
+                  'bg-blue-100 text-blue-800': resultsRevealed,
+                }"
+              >
+                {{
+                  votingOpen
+                    ? 'Voting Open'
+                    : resultsRevealed
+                    ? 'Results Revealed'
+                    : 'Voting Closed'
+                }}
+              </Typography>
+            </div>
 
-          <!-- Voting Buttons -->
-          <div v-if="votingOpen" class="grid grid-cols-2 gap-4">
-            <Button
-              theme="primary"
-              :isDisabled="hasVoted || isVoting"
-              @click="castVote(1)"
-              class="w-full"
-            >
-              Vote for Host 1
-            </Button>
-            <Button
-              theme="danger"
-              :isDisabled="hasVoted || isVoting"
-              @click="castVote(2)"
-              class="w-full"
-            >
-              Vote for Host 2
-            </Button>
-          </div>
-
-          <!-- Voting Closed Message -->
-          <div v-else-if="votingClosed && !resultsRevealed" class="text-center">
-            <Typography variant="body-lg" class="text-gray-600">
-              Voting is now closed. Results will be revealed soon!
+            <Typography variant="billboard" class="text-center">
+              {{ currentQuestion.question }}
             </Typography>
-          </div>
 
-          <!-- Results Display -->
-          <div v-else-if="resultsRevealed" class="py-4">
-            <div class="relative h-16 bg-gray-100 rounded-lg mb-4 overflow-hidden">
-              <!-- Result Bars -->
-              <div
-                class="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-1000 ease-out"
-                :style="{ width: `${(host1Votes / (host1Votes + host2Votes || 1)) * 100}%` }"
-              ></div>
-              <div
-                class="absolute top-0 right-0 h-full bg-red-500 transition-all duration-1000 ease-out"
-                :style="{ width: `${(host2Votes / (host1Votes + host2Votes || 1)) * 100}%` }"
-              ></div>
+            <!-- Voting Buttons -->
+            <div v-if="votingOpen" class="grid grid-cols-2 gap-4">
+              <button
+                v-for="host in hosts"
+                :key="host.id"
+                :style="{ backgroundColor: host.color }"
+                class="w-full flex items-center justify-center p-3 rounded-md group shadow-md"
+                :class="{ 'pointer-events-none opacity-50': hasVoted }"
+                @click="castVote(host.id)"
+                :disabled="hasVoted || isVoting"
+              >
+                <img
+                  :src="`/storage/${host.avatar}`"
+                  :alt="host.name"
+                  class="w-3/4 group-hover:scale-110 transition-all duration-300"
+                />
+                <span class="sr-only">Vote for {{ host.name }}</span>
+              </button>
+            </div>
 
-              <!-- Labels -->
-              <div class="absolute top-0 left-0 w-full h-full flex text-sm">
-                <div class="flex-1 flex items-center justify-center text-white font-bold">
-                  Host 1: {{ host1Votes }}
-                </div>
-                <div class="flex-1 flex items-center justify-center text-white font-bold">
-                  Host 2: {{ host2Votes }}
+            <!-- Vote Counter during open voting -->
+            <div v-if="votingOpen" class="text-center">
+              <Typography variant="body-small" class="text-gray-600">
+                {{ voteCounts.total }}
+                {{ voteCounts.total === 1 ? 'vote' : 'votes' }} cast so far
+              </Typography>
+            </div>
+
+            <!-- Voting Closed Message -->
+            <div v-else-if="votingClosed && !resultsRevealed" class="text-center">
+              <Typography variant="body-lg" class="text-gray-600">
+                Voting is now closed. Results will be revealed soon!
+              </Typography>
+              <Typography variant="body-small" class="text-gray-500 mt-2">
+                {{ voteCounts?.total ?? 0 }}
+                {{ voteCounts?.total === 1 ? 'vote' : 'votes' }} were cast
+              </Typography>
+            </div>
+
+            <!-- Results Display -->
+            <div v-else-if="resultsRevealed" class="py-4">
+              <!-- Results Reveal Animation -->
+              <div v-if="isRevealAnimating" class="text-center py-8">
+                <Typography variant="h1" class="text-4xl font-bold animate-bounce">
+                  Revealing Results...
+                </Typography>
+              </div>
+
+              <!-- Results Display -->
+              <div v-else>
+                <Stack v-if="isTie" space="medium" class="text-center">
+                  <Typography variant="h1">It's a Tie!</Typography>
+                  <ul class="flex justify-center items-center gap-4">
+                    <li
+                      v-for="winner in currentQuestion.winners"
+                      :key="winner.id"
+                      :style="{ backgroundColor: winner.color }"
+                      class="rounded-full p-1 h-20 w-20 flex items-center justify-center"
+                    >
+                      <img :src="`/storage/${winner.avatar}`" :alt="winner.name" class="w-16" />
+                    </li>
+                  </ul>
+                </Stack>
+                <div v-else>
+                  <div class="relative rounded-lg mb-4 overflow-hidden">
+                    <!-- Vote Bars -->
+                    <!-- Winner Announcement -->
+                    <Stack v-if="currentQuestion.winners" space="medium" class="text-center">
+                      <Stack space="small">
+                        <div
+                          class="flex items-center justify-center p-12 rounded-full max-w-[75%] aspect-square mx-auto"
+                          :style="{ backgroundColor: currentQuestion.winners[0].color }"
+                        >
+                          <img
+                            :src="`/storage/${currentQuestion.winners[0].avatar}`"
+                            :alt="currentQuestion.winners[0].name"
+                            class="group-hover:scale-110 transition-all duration-300"
+                          />
+                        </div>
+                        <Typography variant="billboard"
+                          >{{ currentQuestion.winners[0].name }} wins!</Typography
+                        >
+                      </Stack>
+                      <div
+                        v-for="host in hosts"
+                        :key="host.id"
+                        class="relative h-16 mb-2 last:mb-0"
+                      >
+                        <div
+                          class="absolute inset-0 transition-all duration-1000 rounded-md"
+                          :style="{
+                            width: `${getVotePercentage(host.id)}%`,
+                            backgroundColor: host.color,
+                            opacity: isRevealAnimating ? 0 : 1,
+                          }"
+                        >
+                          <div class="absolute inset-0 flex items-center px-4">
+                            <Typography variant="body" class="font-bold">
+                              {{ host.name }}: {{ getVotesForHost(host.id) }}
+                            </Typography>
+                          </div>
+                        </div>
+                      </div>
+                    </Stack>
+
+                    <Typography variant="body-small" class="text-center text-gray-600 mt-4">
+                      {{ voteCounts?.total ?? 0 }} total
+                      {{ voteCounts?.total === 1 ? 'vote' : 'votes' }}
+                    </Typography>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <Typography variant="body-small" class="text-center text-gray-600">
-              {{ totalVotes }} total {{ totalVotes === 1 ? 'vote' : 'votes' }}
-            </Typography>
-          </div>
-
-          <!-- Vote Confirmation -->
-          <div v-if="hasVoted && votingOpen" class="text-center">
-            <Typography variant="body-small" class="text-green-600">
-              Your vote has been recorded! <span v-if="voteCast">(Host {{ voteCast }})</span>
-            </Typography>
-          </div>
+            <!-- Vote Confirmation -->
+            <div v-if="hasVoted && votingOpen" class="text-center">
+              <Typography variant="body-small" class="text-green-600"> You've voted! </Typography>
+            </div>
+          </template>
         </Stack>
       </Card>
-
-      <!-- Vote Animation -->
-      <div
-        v-if="showVoteAnimation"
-        class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
-      >
-        <Card padding="medium" class="animate-bounce">
-          <Stack space="small" class="items-center">
-            <Icon icon="check" size="large" class="text-green-500" />
-            <Typography variant="h2">Vote Cast!</Typography>
-          </Stack>
-        </Card>
-      </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.host-vote-container {
+  margin: 10px 0;
+  background: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.host-vote-bar {
+  padding: 10px;
+  background: #4a90e2;
+  color: white;
+  transition: width 0.3s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.host-vote-bar.winner {
+  background: #2ecc71;
+  font-weight: bold;
+}
+
+.host-name {
+  font-weight: 500;
+}
+
+.vote-count {
+  font-size: 0.9em;
+}
+</style>

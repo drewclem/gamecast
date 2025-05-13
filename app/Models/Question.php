@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Question extends Model
 {
@@ -20,6 +22,24 @@ class Question extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    public function toBroadcast(): array
+    {
+        $this->load('votes');
+
+        $voteCounts = $this->getVoteCounts();
+        $winners = $this->getWinningHosts();
+
+        return [
+            'id' => $this->id,
+            'game_id' => $this->game_id,
+            'question' => $this->question,
+            'status' => $this->status,
+            'winners' => $winners,
+            'vote_counts' => $voteCounts,
+            'votes_count' => $this->votes->count()
+        ];
+    }
 
     public function game(): BelongsTo
     {
@@ -36,14 +56,38 @@ class Question extends Model
         return $this->hasMany(Vote::class);
     }
 
-    public function getVotesForHost1(): int
+    public function scopeVotesForHost($query, $hostId)
     {
-        return $this->votes()->where('choice', 1)->count();
+        return $query->votes()->where('host_id', $hostId);
     }
 
-    public function getVotesForHost2(): int
+    public function getVoteCounts(): array
     {
-        return $this->votes()->where('choice', 2)->count();
+        // Get all hosts from the associated game
+        $gameHosts = $this->game->show->hosts()->pluck('id')->map(function ($id) {
+            return (string)$id; // Ensure consistent string formatting
+        })->toArray();
+
+        // Initialize counts for all hosts to zero
+        $voteCounts = array_fill_keys($gameHosts, 0);
+
+        // Get actual vote counts
+        $actualCounts = $this->votes()
+            ->select('host_id', DB::raw('count(*) as count'))
+            ->groupBy('host_id')
+            ->get()
+            ->pluck('count', 'host_id')
+            ->toArray();
+
+        // Merge with initialized counts (overwrite zeros with actual counts)
+        foreach ($actualCounts as $hostId => $count) {
+            $voteCounts[(string)$hostId] = (int)$count;
+        }
+
+        return [
+            'byHost' => $voteCounts,
+            'total' => array_sum($voteCounts)
+        ];
     }
 
     public function isVotingOpen(): bool
@@ -64,5 +108,19 @@ class Question extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    public function getWinningHost()
+    {
+        $voteCounts = $this->getVoteCounts();
+        $winningHost = array_keys($voteCounts['byHost'], max($voteCounts['byHost']));
+        return Host::find($winningHost)->first();
+    }
+
+    public function getWinningHosts()
+    {
+        $voteCounts = $this->getVoteCounts();
+        $winningHosts = array_keys($voteCounts['byHost'], max($voteCounts['byHost']));
+        return Host::whereIn('id', $winningHosts)->get();
     }
 }

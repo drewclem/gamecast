@@ -20,6 +20,6 @@ class StoreGameQuestionController extends Controller
             'host_id' => $request->user()->currentHost->id,
         ]);
 
-        return redirect()->route('games.edit', $game->slug);
+        return redirect()->back()->with('success', 'Question added successfully');
     }
 }

@@ -25,7 +25,7 @@ class GameFactory extends Factory
       'slug' => Str::slug($title),
       'description' => fake()->paragraph(),
       'status' => GameStatus::UPCOMING,
-      'access_password' => fake()->password(),
+      'access_code' => fake()->password(),
       'show_id' => fn() => Show::factory(),
     ];
   }

@@ -16,6 +16,15 @@ class PlayGameController extends Controller
      */
     public function __invoke(Request $request, Game $game)
     {
+        // Only load what's needed for the initial render
+        $game->load([
+            'show.hosts',
+            'activeQuestion',
+            'watchers' => function ($query) {
+                $query->where('last_active_at', '>=', now()->subMinutes(5));
+            }
+        ]);
+
         $sessionKey = 'watcher_' . $game->id;
 
         if (!Session::has($sessionKey)) {
@@ -23,6 +32,7 @@ class PlayGameController extends Controller
         }
 
         $watcher = Watcher::find(Session::get($sessionKey));
+        $watcher->loadMissing('votes');
 
         if (!$watcher || $watcher->game_id !== $game->id) {
             Session::forget($sessionKey);
@@ -33,21 +43,18 @@ class PlayGameController extends Controller
             'last_active_at' => now(),
         ]);
 
-        // Only load what's needed for the initial render
-        $game->load(['activeQuestion', 'watchers' => function ($query) {
-            $query->where('last_active_at', '>=', now()->subMinutes(5));
-        }]);
 
         // Get vote counts for the active question
         $voteCounts = [];
         if ($game->activeQuestion) {
-            $voteCounts[$game->activeQuestion->id] = [
-                'host1' => $game->activeQuestion->getVotesForHost1(),
-                'host2' => $game->activeQuestion->getVotesForHost2(),
-            ];
+            $winners = $game->activeQuestion->getWinningHosts();
+
+            $game->activeQuestion['winners'] = $winners;
+            $voteCounts[$game->activeQuestion->id] = $game->activeQuestion->getVoteCounts();
         }
 
         return Inertia::render('Games/PlayGame', [
+            'hosts' => $game->show->hosts,
             'game' => GameResource::make($game),
             'watcher' => $watcher,
             'activeQuestion' => $game->activeQuestion,

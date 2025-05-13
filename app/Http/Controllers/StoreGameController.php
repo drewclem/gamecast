@@ -17,7 +17,7 @@ class StoreGameController extends Controller
         'title' => $request->input('title'),
         'slug' => Str::slug($request->input('title')),
         'description' => $request->input('description'),
-        'access_password' => $request->input('access_password'),
+        'access_code' => $request->input('access_code'),
       ]);
 
       return $game;

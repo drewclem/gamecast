@@ -13,7 +13,7 @@
         :size="size === 'default' ? 'xsmall' : 'xxsmall'"
         class="opacity-60 group-hover:opacity-100"
       />
-      <Typography>
+      <Typography v-if="$slots.default">
         <slot />
       </Typography>
     </span>
@@ -34,7 +34,7 @@
         :size="size === 'default' ? 'xsmall' : 'xxsmall'"
         class="opacity-60 group-hover:opacity-100"
       />
-      <Typography>
+      <Typography v-if="$slots.default">
         <slot />
       </Typography>
     </span>
@@ -54,7 +54,7 @@
         :size="size === 'default' ? 'xsmall' : 'xxsmall'"
         class="opacity-60"
       />
-      <Typography>
+      <Typography v-if="$slots.default">
         <slot />
       </Typography>
     </span>

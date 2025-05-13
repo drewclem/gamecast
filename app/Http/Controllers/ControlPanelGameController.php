@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Game;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
+use App\Http\Resources\GameResource;
 
 class ControlPanelGameController extends Controller
 {
@@ -15,9 +16,20 @@ class ControlPanelGameController extends Controller
     {
         $game->load(['questions.votes', 'watchers', 'activeQuestion']);
 
+        $voteCounts = [];
+        if ($game->activeQuestion) {
+            $winners = $game->activeQuestion->getWinningHosts();
+
+            $game->activeQuestion['winners'] = $winners;
+            $voteCounts[$game->activeQuestion->id] = $game->activeQuestion->getVoteCounts();
+        }
+
         return Inertia::render('Games/ControlPanel', [
-            'game' => $game,
+            'hosts' => $game->show->hosts,
+            'game' => GameResource::make($game),
             'activeQuestion' => $game->activeQuestion,
+            'activeWatchers' => $game->watchers->count(),
+            'voteCounts' => $voteCounts,
         ]);
     }
 }

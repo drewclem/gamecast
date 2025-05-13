@@ -21,6 +21,9 @@ class HostFactory extends Factory
         return [
             'user_id' => fn() => User::factory(),
             'show_id' => fn() => Show::factory(),
+            'name' => fake()->name(),
+            'avatar' => fake()->imageUrl(),
+            'color' => fake()->colorName(),
         ];
     }
 }
