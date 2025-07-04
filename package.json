@@ -24,6 +24,7 @@
     "dependencies": {
         "@remixicon/vue": "^4.6.0",
         "radix-vue": "^1.9.17",
+        "swiper": "^11.2.6",
         "tippy.js": "^6.3.7",
         "uuid": "^11.1.0",
         "vuedraggable": "^4.1.0"

@@ -22,7 +22,7 @@ class UpdateGameRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'current_question_id' => ['sometimes', 'uuid', 'exists:questions,id'],
+            'current_question_id' => ['sometimes', 'nullable', 'uuid', 'exists:questions,id'],
             'status' => ['sometimes', 'string', 'in:upcoming,live,ended'],
             'title' => ['sometimes', 'nullable', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string', 'max:255'],

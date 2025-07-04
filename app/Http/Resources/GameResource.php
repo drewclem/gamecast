@@ -21,6 +21,8 @@ class GameResource extends JsonResource
             'description' => $this->description,
             'access_code' => $this->access_code,
             'qr_code_url' => $this->qr_code_url,
+            'openQuestions' => $this->whenLoaded('openQuestions'),
+            'liveQuestions' => $this->whenLoaded('liveQuestions'),
             'questions' => $this->whenLoaded('questions'),
             'watchers' => $this->whenLoaded('watchers'),
         ];

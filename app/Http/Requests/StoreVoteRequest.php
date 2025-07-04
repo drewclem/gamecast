@@ -20,11 +20,6 @@ class StoreVoteRequest extends FormRequest
       return false;
     }
 
-    // Check if the question is active
-    if ($question->status !== 'active') {
-      return false;
-    }
-
     // Check if the watcher has already voted
     $watcherId = session('watcher_' . $game->id);
     if (!$watcherId) {

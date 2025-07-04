@@ -15,6 +15,9 @@ class QuestionObserver
     {
 
         if ($question->isDirty('status')) {
+            $question->refresh();
+
+            $question->load('votes');
 
             broadcast(new QuestionStatusChanged($question));
 

@@ -53,6 +53,16 @@ class Game extends Model
         return $this->hasMany(Question::class)->orderBy('order_index');
     }
 
+    public function openQuestions(): HasMany
+    {
+        return $this->questions()->where('is_active', false);
+    }
+
+    public function liveQuestions(): HasMany
+    {
+        return $this->questions()->where('is_active', true);
+    }
+
     public function watchers(): HasMany
     {
         return $this->hasMany(Watcher::class);

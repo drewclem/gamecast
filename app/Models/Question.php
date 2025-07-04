@@ -17,6 +17,10 @@ class Question extends Model
     use SoftDeletes;
     use HasUuids;
 
+    // Question Types
+    public const TYPE_OPEN = 'open';
+    public const TYPE_LIVE = 'live';
+
     protected $guarded = ['id'];
 
     protected $casts = [
@@ -35,10 +39,27 @@ class Question extends Model
             'game_id' => $this->game_id,
             'question' => $this->question,
             'status' => $this->status,
+            'is_active' => $this->is_active,
+            'type' => $this->getType(),
             'winners' => $winners,
             'vote_counts' => $voteCounts,
             'votes_count' => $this->votes->count()
         ];
+    }
+
+    public function getType(): string
+    {
+        return $this->is_active ? self::TYPE_LIVE : self::TYPE_OPEN;
+    }
+
+    public function isOpenQuestion(): bool
+    {
+        return !$this->is_active;
+    }
+
+    public function isLiveQuestion(): bool
+    {
+        return $this->is_active;
     }
 
     public function game(): BelongsTo
@@ -108,6 +129,34 @@ class Question extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    public function scopeInactive($query)
+    {
+        return $query->where('is_active', false);
+    }
+
+    public function scopeOpen($query)
+    {
+        return $query->where('is_active', false);
+    }
+
+    public function scopeLive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeVotable($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('is_active', false)
+                ->orWhere('status', 'active');
+        });
+    }
+
+    public function canBeVotedOn(): bool
+    {
+        return $this->isOpenQuestion() || $this->status === 'active';
     }
 
     public function getWinningHost()

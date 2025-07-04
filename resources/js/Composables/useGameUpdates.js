@@ -1,5 +1,5 @@
 // resources/js/Composables/useGameUpdates.js
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue'
 import { usePage } from '@inertiajs/vue3'
 
 export function useGameUpdates(gameId) {
@@ -8,6 +8,10 @@ export function useGameUpdates(gameId) {
   const initialProps = computed(() => page.props)
 
   const activeWatchers = ref(initialProps.value.activeWatchers || 0)
+  const game = ref({
+    ...initialProps.value.game.data,
+  })
+
   const voteCounts = ref(
     initialProps.value.voteCounts || {
       byHost: {},
@@ -15,6 +19,12 @@ export function useGameUpdates(gameId) {
     }
   )
   const lastUpdate = ref(Date.now())
+
+  watch(initialProps, (newProps) => {
+    activeWatchers.value = newProps.activeWatchers
+    voteCounts.value = newProps.voteCounts
+    game.value = newProps.game.data
+  })
 
   let echoChannel = null
 
@@ -24,18 +34,20 @@ export function useGameUpdates(gameId) {
     echoChannel = window.Echo.channel(`game.${gameId}`)
 
     echoChannel.listen('WatcherCountUpdated', (e) => {
-      console.log('WatcherCountUpdated event received:', e)
       activeWatchers.value = e.watcher_count
       lastUpdate.value = Date.now()
     })
 
     echoChannel.listen('QuestionVotesUpdated', (e) => {
-      console.log('QuestionVotesUpdated event received:', e)
       if (voteCounts.value[e.question_id]) {
         voteCounts.value[e.question_id] = {
           byHost: e.votes_by_host,
           total: e.total_votes,
         }
+      }
+
+      if (e.game) {
+        game.value = e.game
       }
       lastUpdate.value = Date.now()
     })
@@ -58,6 +70,7 @@ export function useGameUpdates(gameId) {
       activeWatchers,
       voteCounts,
     },
+    game,
     lastUpdate,
   }
 }

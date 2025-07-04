@@ -1,6 +1,6 @@
 <script setup>
 import { Head, useForm } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { useGameUpdates } from '@/Composables/useGameUpdates'
 import { useQuestionState } from '@/Composables/useQuestionState'
@@ -41,18 +41,20 @@ const {
   timeRemaining,
   setActiveQuestion,
   openVoting,
+  openQuestions,
   closeVoting,
   revealResults,
 } = useQuestionState(props.game.data.slug, props.game.data.id)
 
 // Set up game updates
-const { data } = useGameUpdates(props.game.data.id)
+const { data, game } = useGameUpdates(props.game.data.id)
 
 const formQuestion = useForm({
   question: '',
 })
 
 const isSlideoverOpen = ref(false)
+const showHosts = ref(false)
 
 function createQuestion() {
   formQuestion.post(route('games.questions.store', props.game.data), {
@@ -67,15 +69,30 @@ function createQuestion() {
 function getVotesForHost(hostId) {
   return voteCounts.value?.byHost?.[hostId] || 0
 }
+
+// Add reveal animation function
+function triggerRevealAnimation() {
+  showHosts.value = false
+  setTimeout(() => {
+    showHosts.value = true
+  }, 5000) // Show hosts after 3 seconds
+}
+
+// Watch for reveal event
+watch(resultsRevealed, (newValue, oldValue) => {
+  if (newValue && !oldValue) {
+    triggerRevealAnimation()
+  }
+})
 </script>
 
 <template>
-  <Head :title="`Control Panel - ${game.data.title}`" />
+  <Head :title="`Control Panel - ${props.game.data.title}`" />
 
   <AuthenticatedLayout>
     <template #header>
       <div class="flex justify-between items-center">
-        <Typography variant="h1">{{ game.data.title }} - Control Panel</Typography>
+        <Typography variant="h1">{{ props.game.data.title }} - Control Panel</Typography>
         <div class="flex items-center space-x-2 text-green-600">
           <Typography class="font-semibold"> {{ data.activeWatchers ?? 0 }} </Typography>
           <Icon icon="team" size="small" class="text-green-600" />
@@ -89,21 +106,13 @@ function getVotesForHost(hostId) {
         <Card>
           <Stack space="small">
             <Typography variant="h2">Share with Watchers</Typography>
-            <!-- <div class="flex items-center bg-gray-100 p-3 rounded">
-                <Typography class="flex-grow truncate">
-                  {{ window.location.origin }}/games/{{ game.id }}/join
-                </Typography>
-                <Button
-                  theme="primary"
-                  @click="
-                    navigator.clipboard.writeText(`${window.location.origin}/games/${game.id}/join`)
-                  "
-                >
-                  Copy
-                </Button>
-              </div> -->
+            <div class="flex items-center bg-gray-100 p-3 rounded">
+              <Typography class="flex-grow truncate">
+                {{ route('games.join', props.game.data) }}
+              </Typography>
+            </div>
             <Typography variant="body-small" class="text-gray-600">
-              Password: <span class="font-medium">{{ game.data.access_code }}</span>
+              Password: <span class="font-medium">{{ props.game.data.access_code }}</span>
             </Typography>
           </Stack>
         </Card>
@@ -129,7 +138,7 @@ function getVotesForHost(hostId) {
                 </div>
                 <Stack space="small">
                   <Card
-                    v-for="question in game.data.questions"
+                    v-for="question in game?.questions"
                     :key="question.id"
                     class="cursor-pointer transition-colors"
                     :class="{
@@ -139,8 +148,28 @@ function getVotesForHost(hostId) {
                     }"
                     @click="setActiveQuestion(question.id)"
                   >
-                    <Stack space="xsmall">
-                      <Typography variant="body-lg">{{ question.question }}</Typography>
+                    <Stack space="small">
+                      <div class="flex justify-between">
+                        <Stack space="xsmall">
+                          <Typography
+                            variant="body-small"
+                            class="absolute top-0 mt-3 text-gray-500"
+                          >
+                            {{ question.votes.length }}
+                            {{ question.votes.length === 1 ? 'vote' : 'votes' }}
+                          </Typography>
+                          <Typography variant="body-lg">{{ question.question }}</Typography>
+                        </Stack>
+                        <div class="shrink-0">
+                          <Typography
+                            v-if="question.is_active"
+                            variant="body-small"
+                            class="text-yellow-600 bg-yellow-100 p-1 rounded-full"
+                          >
+                            Play Live
+                          </Typography>
+                        </div>
+                      </div>
                       <Typography
                         variant="body-small"
                         :class="{
@@ -175,7 +204,12 @@ function getVotesForHost(hostId) {
 
               <div v-else>
                 <Stack space="medium">
-                  <Typography variant="h2">Current Question</Typography>
+                  <div class="flex justify-between items-center">
+                    <Typography variant="h2">Current Question</Typography>
+                    <Button theme="primary-outline" @click="setActiveQuestion(null)">
+                      Clear Question
+                    </Button>
+                  </div>
 
                   <!-- Question Content -->
                   <Card padding="medium" class="bg-gray-50">
@@ -252,66 +286,85 @@ function getVotesForHost(hostId) {
 
                   <!-- Results Display -->
                   <div v-if="resultsRevealed">
-                    <Stack space="medium">
-                      <!-- Winners Display -->
-                      <div v-if="currentQuestion.winners?.length" class="text-center">
-                        <Typography variant="h2" class="mb-4">
-                          {{ currentQuestion.winners.length > 1 ? "It's a Tie!" : 'Winner!' }}
-                        </Typography>
-                        <div class="flex justify-center gap-4">
-                          <div
-                            v-for="winner in currentQuestion.winners"
-                            :key="winner.id"
-                            class="flex flex-col items-center"
-                          >
+                    <template v-if="showHosts">
+                      <Stack space="medium">
+                        <!-- Winners Display -->
+                        <div v-if="currentQuestion.winners?.length" class="text-center">
+                          <Typography variant="h2" class="mb-4">
+                            {{
+                              showHosts
+                                ? currentQuestion.winners.length > 1
+                                  ? "It's a Tie!"
+                                  : 'Winner!'
+                                : 'Revealing Results...'
+                            }}
+                          </Typography>
+                          <div class="flex justify-center gap-4">
                             <div
-                              class="w-24 h-24 rounded-full flex items-center justify-center mb-2"
-                              :style="{ backgroundColor: winner.color }"
+                              v-for="winner in currentQuestion.winners"
+                              :key="winner.id"
+                              class="flex flex-col items-center"
                             >
-                              <img
-                                :src="`/storage/${winner.avatar}`"
-                                :alt="winner.name"
-                                class="w-20 h-20 object-contain"
-                              />
+                              <div
+                                class="w-24 h-24 rounded-full flex items-center justify-center mb-2"
+                                :style="{ backgroundColor: winner.color }"
+                              >
+                                <img
+                                  :src="`/storage/${winner.avatar}`"
+                                  :alt="winner.name"
+                                  class="w-20 h-20 object-contain transition-opacity duration-500"
+                                  :class="{ 'opacity-0': !showHosts }"
+                                />
+                              </div>
+                              <Typography variant="h3" :class="{ 'opacity-0': !showHosts }">
+                                {{ winner.name }}
+                              </Typography>
                             </div>
-                            <Typography variant="h3">{{ winner.name }}</Typography>
                           </div>
                         </div>
-                      </div>
 
-                      <!-- Animated Results Bar -->
-                      <div class="relative h-6 bg-gray-100 rounded-lg overflow-hidden">
-                        <div
-                          v-for="host in hosts"
-                          :key="host.id"
-                          class="absolute top-0 h-full transition-all duration-1000 ease-out animate-pulse"
-                          :class="{
-                            'left-0': host.id === hosts[0].id,
-                            'right-0': host.id === hosts[1].id,
-                          }"
-                          :style="{
-                            width: `${Math.max(
-                              1,
-                              ((voteCounts?.byHost?.[host.id] || 0) / (voteCounts?.total || 1)) * 99
-                            )}%`,
-                            backgroundColor: host.color,
-                          }"
-                        ></div>
-
-                        <!-- Labels -->
-                        <div class="absolute top-0 left-0 w-full h-full flex">
+                        <!-- Animated Results Bar -->
+                        <div class="relative h-6 bg-gray-100 rounded-lg overflow-hidden">
                           <div
                             v-for="host in hosts"
                             :key="host.id"
-                            class="flex-1 flex items-center justify-center text-white animate-pulse"
-                          >
-                            <Typography variant="h2">
-                              {{ host.name }}: {{ voteCounts?.byHost?.[host.id] || 0 }}
-                            </Typography>
+                            class="absolute top-0 h-full transition-all duration-1000 ease-out animate-pulse"
+                            :class="{
+                              'left-0': host.id === hosts[0].id,
+                              'right-0': host.id === hosts[1].id,
+                            }"
+                            :style="{
+                              width: `${Math.max(
+                                1,
+                                ((voteCounts?.byHost?.[host.id] || 0) / (voteCounts?.total || 1)) *
+                                  99
+                              )}%`,
+                              backgroundColor: host.color,
+                              opacity: showHosts ? 1 : 0,
+                            }"
+                          ></div>
+
+                          <!-- Labels -->
+                          <div class="absolute top-0 left-0 w-full h-full flex">
+                            <div
+                              v-for="host in hosts"
+                              :key="host.id"
+                              class="flex-1 flex items-center justify-center text-white animate-pulse"
+                              :class="{ 'opacity-0': !showHosts }"
+                            >
+                              <Typography variant="h2">
+                                {{ host.name }}: {{ voteCounts?.byHost?.[host.id] || 0 }}
+                              </Typography>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </Stack>
+                      </Stack>
+                    </template>
+                    <template v-else>
+                      <Stack space="medium">
+                        <Typography variant="h2">The winner is...</Typography>
+                      </Stack>
+                    </template>
                   </div>
                 </Stack>
               </div>

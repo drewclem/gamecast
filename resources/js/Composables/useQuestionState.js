@@ -14,10 +14,13 @@ export function useQuestionState(gameSlug, gameId) {
 
   const pageProps = computed(() => page.props)
 
+  console.log('pageProps', pageProps.value)
   const currentQuestion = ref(pageProps.value.activeQuestion || null)
   const votingStatus = ref(pageProps.value.activeQuestion?.status || QuestionStatus.CLOSED)
-  const voteCounts = ref(Object.values(pageProps.value.voteCounts)[0] || { byHost: {}, total: 0 })
+  const voteCounts = ref(pageProps.value.voteCounts || { byHost: {}, total: 0 })
   const loading = ref(false)
+  const openQuestions = ref(pageProps.value.game.data.openQuestions || [])
+  const watcher = ref(pageProps.value.watcher || null)
 
   // Watch for changes in page props and update our refs
   watch(
@@ -28,10 +31,7 @@ export function useQuestionState(gameSlug, gameId) {
         currentQuestion.value = newProps.activeQuestion
         votingStatus.value = newProps.activeQuestion.status
         loading.value = false
-      }
-
-      if (newProps.voteCounts) {
-        voteCounts.value = newProps.voteCounts
+        voteCounts.value = newProps.voteCounts ?? { byHost: {}, total: 0 }
       }
     },
     { deep: true }
@@ -81,8 +81,6 @@ export function useQuestionState(gameSlug, gameId) {
     echoChannel = window.Echo.channel(`game.${gameId}`)
 
     echoChannel.listen('QuestionVotesUpdated', (e) => {
-      console.log('QuestionVotesUpdated in questionState:', e)
-
       if (currentQuestion.value && currentQuestion.value.id === e.question_id) {
         voteCounts.value = {
           byHost: e.votes_by_host,
@@ -92,13 +90,12 @@ export function useQuestionState(gameSlug, gameId) {
     })
 
     echoChannel.listen('QuestionStatusChanged', (e) => {
-      console.log('QuestionStatusChanged in questionState:', e)
-
       if (currentQuestion.value && currentQuestion.value.id === e.id) {
         currentQuestion.value.status = e.status
         votingStatus.value = e.status
 
         if (e.status === QuestionStatus.REVEALED) {
+          console.log('revealed', e.vote_counts)
           voteCounts.value = e.vote_counts
         }
 
@@ -109,8 +106,6 @@ export function useQuestionState(gameSlug, gameId) {
     })
 
     echoChannel.listen('CurrentQuestionChanged', (e) => {
-      console.log('CurrentQuestionChanged in questionState:', e)
-
       currentQuestion.value = e.question
 
       if (e.question) {
@@ -221,6 +216,8 @@ export function useQuestionState(gameSlug, gameId) {
     setActiveQuestion,
     openVoting,
     closeVoting,
+    watcher,
     revealResults,
+    openQuestions,
   }
 }

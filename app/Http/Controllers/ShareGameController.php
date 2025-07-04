@@ -20,11 +20,12 @@ class ShareGameController extends Controller
             $game->activeQuestion->load('host');
 
             $game->activeQuestion['winners'] = $winners;
-            $voteCounts[$game->activeQuestion->id] = $game->activeQuestion->getVoteCounts();
+            $voteCounts = $game->activeQuestion->getVoteCounts();
         }
 
         return Inertia::render('Games/ShareGame', [
             'game' => GameResource::make($game),
+            'hosts' => $game->show->hosts,
             'activeQuestion' => $game->activeQuestion,
             'activeWatchers' => $game->watchers->count(),
             'voteCounts' => $voteCounts,

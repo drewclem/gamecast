@@ -244,12 +244,15 @@ function submit() {
                     </Stack>
                   </div>
                   <div class="flex items-center gap-4">
-                    <!-- <div class="flex items-center">
+                    <div class="flex items-center space-x-3">
+                      <Typography variant="body-small" class="text-gray-500">
+                        Play Live
+                      </Typography>
                       <Switch
                         v-model="question.is_active"
                         @update:model-value="toggleQuestionActive(question.id, question.is_active)"
                       />
-                    </div> -->
+                    </div>
                     <button
                       @click="openDeleteQuestionModal(question)"
                       class="text-red-500 opacity-60 hover:opacity-100"

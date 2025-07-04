@@ -21,7 +21,7 @@ class ControlPanelGameController extends Controller
             $winners = $game->activeQuestion->getWinningHosts();
 
             $game->activeQuestion['winners'] = $winners;
-            $voteCounts[$game->activeQuestion->id] = $game->activeQuestion->getVoteCounts();
+            $voteCounts = $game->activeQuestion->getVoteCounts();
         }
 
         return Inertia::render('Games/ControlPanel', [

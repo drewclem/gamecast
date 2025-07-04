@@ -20,6 +20,8 @@ import {
   RiCloseLine,
   RiPencilLine,
   RiDeleteBinLine,
+  RiArrowLeftLine,
+  RiArrowRightLine,
   RiDraggable,
   RiSettings5Line,
   RiTeamLine,
@@ -89,6 +91,10 @@ const remixIcon = computed(() => {
       return RiCheckLine
     case 'chevron-down':
       return RiArrowDownSLine
+    case 'chevron-left':
+      return RiArrowLeftLine
+    case 'chevron-right':
+      return RiArrowRightLine
     case 'info':
       return RiInformationLine
     case 'success':

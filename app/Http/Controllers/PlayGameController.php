@@ -16,10 +16,11 @@ class PlayGameController extends Controller
      */
     public function __invoke(Request $request, Game $game)
     {
-        // Only load what's needed for the initial render
         $game->load([
             'show.hosts',
-            'activeQuestion',
+            'activeQuestion.votes',
+            'openQuestions.votes',
+            'liveQuestions.votes',
             'watchers' => function ($query) {
                 $query->where('last_active_at', '>=', now()->subMinutes(5));
             }
@@ -43,14 +44,20 @@ class PlayGameController extends Controller
             'last_active_at' => now(),
         ]);
 
-
-        // Get vote counts for the active question
         $voteCounts = [];
         if ($game->activeQuestion) {
-            $winners = $game->activeQuestion->getWinningHosts();
+            $game->activeQuestion->refresh();
 
+            $winners = $game->activeQuestion->getWinningHosts();
             $game->activeQuestion['winners'] = $winners;
-            $voteCounts[$game->activeQuestion->id] = $game->activeQuestion->getVoteCounts();
+
+            $voteCounts = $game->activeQuestion->getVoteCounts();
+            // dd($voteCounts);
+        } else {
+            $voteCounts = [
+                'byHost' => [],
+                'total' => 0,
+            ];
         }
 
         return Inertia::render('Games/PlayGame', [
