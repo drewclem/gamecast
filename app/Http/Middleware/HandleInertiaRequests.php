@@ -35,7 +35,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
-            'show' => $request->user()?->currentHost()?->first()->show,
+            'show' => $request->user()?->currentHost()?->first()?->show,
         ];
     }
 }
