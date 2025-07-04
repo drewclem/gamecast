@@ -23,6 +23,7 @@
     },
     "dependencies": {
         "@remixicon/vue": "^4.6.0",
+        "lucide-vue-next": "^0.525.0",
         "radix-vue": "^1.9.17",
         "swiper": "^11.2.6",
         "tippy.js": "^6.3.7",
