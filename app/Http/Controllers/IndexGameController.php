@@ -22,10 +22,12 @@ class IndexGameController extends Controller
     ]);
   }
 
-  private function buildSearchQuery($request, Show $show): QueryBuilder
+  private function buildSearchQuery($request, ?Show $show): QueryBuilder
   {
     return QueryBuilder::for(Game::class)
-      ->where('show_id', $show->id)
+      ->when($show, function ($query, $show) {
+        return $query->where('show_id', $show->id);
+      })
       ->allowedFilters([
         AllowedFilter::scope('search', 'search'),
         AllowedFilter::exact('status'),

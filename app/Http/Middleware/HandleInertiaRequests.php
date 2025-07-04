@@ -29,13 +29,14 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $currentHost = $request->user()?->currentHost;
 
         return [
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
             ],
-            'show' => $request->user()?->currentHost()?->first()?->show,
+            'show' => $currentHost ? $currentHost->show : null,
         ];
     }
 }
