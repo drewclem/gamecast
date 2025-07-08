@@ -8,13 +8,11 @@ import Button from '@/Stencil/Button.vue'
 import Typography from '@/Stencil/Typography.vue'
 import SlideOut from '@/Stencil/SlideOut.vue'
 import Stack from '@/Stencil/Stack.vue'
-import Icon from '@/Stencil/Icon.vue'
 import Card from '@/Stencil/Card.vue'
 import Avatar from '@/Stencil/Avatar.vue'
 import Table from '@/Stencil/Table.vue'
 
 import FormTextInput from '@/Stencil/Forms/FormInput.vue'
-import FormTextarea from '@/Stencil/Forms/FormTextarea.vue'
 import FormAvatar from '@/Stencil/Forms/FormAvatar.vue'
 import FormColorPicker from '@/Stencil/Forms/FormColorPicker.vue'
 
@@ -102,6 +100,7 @@ const asset = (path) => {
 </script>
 
 <template>
+  <Head title="Hosts" />
   <AuthenticatedLayout>
     <template #header>
       <div class="flex justify-between items-center">
@@ -125,14 +124,9 @@ const asset = (path) => {
             <td class="font-medium">
               <div
                 :style="{ backgroundColor: host.color ?? '#000' }"
-                class="w-12 h-12 rounded-full"
+                class="flex items-center justify-center w-[52px] h-[52px] rounded-full"
               >
-                <img
-                  v-if="host.avatar"
-                  :src="asset(host.avatar)"
-                  :alt="host.name"
-                  class="w-12 h-auto"
-                />
+                <Avatar v-if="host.avatar" size="large" :src="asset(host.avatar)" />
                 <div
                   v-else
                   class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center"
@@ -144,6 +138,7 @@ const asset = (path) => {
             <td>
               {{ host.name }}
             </td>
+            <td></td>
             <td class="text-right">
               <Button theme="primary-outline" icon="edit" @click="editHost(host)" />
             </td>

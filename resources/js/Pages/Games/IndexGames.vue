@@ -82,7 +82,7 @@ function navigateToGame(slug) {
             </div>
 
             <Link :href="route('games.edit', game.slug)">
-              <Icon icon="settings" size="xsmall" class="inline -mt-1 text-yellow-500" />
+              <Icon icon="settings" size="xsmall" class="inline -mt-1 text-amber-500" />
               Edit
             </Link>
           </Stack>

@@ -11,7 +11,7 @@
         v-if="icon"
         :icon="icon"
         :size="size === 'default' ? 'xsmall' : 'xxsmall'"
-        class="opacity-60 group-hover:opacity-100"
+        class="opacity-75 group-hover:opacity-100"
       />
       <Typography v-if="$slots.default">
         <slot />
@@ -32,7 +32,7 @@
         v-if="icon"
         :icon="icon"
         :size="size === 'default' ? 'xsmall' : 'xxsmall'"
-        class="opacity-60 group-hover:opacity-100"
+        class="opacity-75 group-hover:opacity-100"
       />
       <Typography v-if="$slots.default">
         <slot />
@@ -111,7 +111,7 @@ defineProps({
 
 <style scoped lang="postcss">
 .btn {
-  @apply text-center font-semibold rounded transform hover:scale-105 border-2 border-transparent;
+  @apply text-center font-semibold rounded transform hover:scale-[1.03] border-2 border-transparent;
 }
 
 .btn-default {
@@ -127,12 +127,8 @@ defineProps({
 }
 
 .btn-primary {
-  @apply bg-amber-500;
-  background-image: linear-gradient(to bottom right, rgb(248, 222, 146), rgb(234 179 8));
-}
-
-.btn-primary:hover {
-  @apply bg-yellow-500;
+  @apply text-white transition duration-150 ease-in-out;
+  background-image: linear-gradient(to bottom right, rgb(251, 176, 64), rgb(241 90 41));
 }
 
 .btn-primary-outline {
@@ -140,11 +136,11 @@ defineProps({
 }
 
 .btn-primary-outline:hover {
-  @apply border-yellow-500;
+  @apply border-amber-500;
 }
 
 .btn-secondary {
-  @apply bg-black text-yellow-400;
+  @apply bg-black text-yellow-500;
   background-image: linear-gradient(to bottom right, #474747, #2b2b2b);
 }
 
