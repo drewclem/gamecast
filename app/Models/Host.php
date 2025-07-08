@@ -30,4 +30,9 @@ class Host extends Model
     {
         return $this->hasMany(Vote::class);
     }
+
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(Invitation::class);
+    }
 }

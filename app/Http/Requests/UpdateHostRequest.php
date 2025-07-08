@@ -8,8 +8,7 @@ class UpdateHostRequest extends FormRequest
 {
   public function authorize(): bool
   {
-    $show = $this->route('show');
-    return $show && $show->user_id === $this->user()->id;
+    return true;
   }
 
   public function rules(): array

@@ -19,6 +19,10 @@ export default {
         black: '#474747',
         yellow: {
           100: '#fff7d3',
+          500: '#fbb040',
+        },
+        amber: {
+          500: '#f15a29',
         },
         primary: {
           50: '#eefbf5',

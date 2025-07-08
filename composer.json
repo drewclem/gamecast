@@ -18,6 +18,8 @@
         "laravel/tinker": "^2.10.1",
         "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-query-builder": "^6.3",
+        "symfony/http-client": "^7.3",
+        "symfony/postmark-mailer": "^7.3",
         "tightenco/ziggy": "^2.0"
     },
     "require-dev": {

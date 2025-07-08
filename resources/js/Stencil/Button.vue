@@ -127,7 +127,7 @@ defineProps({
 }
 
 .btn-primary {
-  @apply bg-yellow-500;
+  @apply bg-amber-500;
   background-image: linear-gradient(to bottom right, rgb(248, 222, 146), rgb(234 179 8));
 }
 

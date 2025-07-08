@@ -50,7 +50,13 @@ const editForm = useForm({
 })
 
 function createHost() {
-  form.post(route('hosts.store', { show: props.show.id }))
+  form.post(route('hosts.store', { show: props.show.id }), {
+    preserveScroll: true,
+    onSuccess: () => {
+      isSlideoverOpen.value = false
+      form.reset()
+    },
+  })
 }
 
 function closeSlideover() {

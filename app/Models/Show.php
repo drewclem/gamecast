@@ -26,7 +26,8 @@ class Show extends Model
 
     public function hosts(): HasMany
     {
-        return $this->hasMany(Host::class);
+        return $this->hasMany(Host::class)
+            ->orderBy('name', 'asc');
     }
 
     public function games(): HasMany

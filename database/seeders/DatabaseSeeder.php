@@ -26,7 +26,9 @@ class DatabaseSeeder extends Seeder
             'description' => 'Dev Show Description',
         ]);
 
-        $host = HostFactory::new()->for($user)->for($show)->create();
+        $host = HostFactory::new()->for($user)->for($show)->create([
+            'name' => 'Dev Host',
+        ]);
 
         $user->update(['current_host_id' => $host->id]);
     }

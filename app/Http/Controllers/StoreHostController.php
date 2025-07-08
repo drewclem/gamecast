@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Show;
 use App\Models\User;
+use App\Mail\HostInvite;
+use App\Models\Invitation;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\StoreHostRequest;
-use Illuminate\Support\Facades\Storage;
 
 class StoreHostController extends Controller
 {
@@ -30,6 +32,14 @@ class StoreHostController extends Controller
       $data['user_id'] = $user->id;
       $host = $show->hosts()->create($data);
 
+      $user->update(['current_host_id' => $host->id]);
+
+      $invitation = Invitation::create([
+        'host_id' => $host->id,
+        'token' => Str::random(32),
+        'expires_at' => now()->addDays(7),
+      ]);
+
       if ($request->hasFile('avatar') && $host) {
         $file = $request->file('avatar');
 
@@ -38,6 +48,8 @@ class StoreHostController extends Controller
 
         $host->update(['avatar' => $path]);
       }
+
+      Mail::to($user->email)->queue(new HostInvite($user->currentHost, $invitation));
 
       return $host;
     });
