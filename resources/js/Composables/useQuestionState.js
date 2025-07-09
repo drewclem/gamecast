@@ -14,7 +14,6 @@ export function useQuestionState(gameSlug, gameId) {
 
   const pageProps = computed(() => page.props)
 
-  console.log('pageProps', pageProps.value)
   const currentQuestion = ref(pageProps.value.activeQuestion || null)
   const votingStatus = ref(pageProps.value.activeQuestion?.status || QuestionStatus.CLOSED)
   const voteCounts = ref(pageProps.value.voteCounts || { byHost: {}, total: 0 })
@@ -77,7 +76,6 @@ export function useQuestionState(gameSlug, gameId) {
   }
 
   function setupEventListeners(gameId) {
-    console.log('setting up event listeners for game', gameId)
     echoChannel = window.Echo.channel(`game.${gameId}`)
 
     echoChannel.listen('QuestionVotesUpdated', (e) => {
@@ -95,7 +93,6 @@ export function useQuestionState(gameSlug, gameId) {
         votingStatus.value = e.status
 
         if (e.status === QuestionStatus.REVEALED) {
-          console.log('revealed', e.vote_counts)
           voteCounts.value = e.vote_counts
         }
 

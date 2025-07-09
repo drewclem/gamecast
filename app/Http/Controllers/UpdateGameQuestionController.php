@@ -14,7 +14,7 @@ class UpdateGameQuestionController extends Controller
     $question->update($request->validated());
 
     if ($request->input('status') === QuestionStatus::REVEALED) {
-      $question->load(['votes', 'game.show.hosts']);
+      $question->load(['votes', 'game.votableHosts']);
     }
 
     return back()->with('success', 'Question updated successfully');

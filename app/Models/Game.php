@@ -8,6 +8,7 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -124,5 +125,34 @@ class Game extends Model
     {
         return $query->where('title', 'like', "%{$search}%")
             ->orWhere('description', 'like', "%{$search}%");
+    }
+
+    public function votableHost1(): BelongsTo
+    {
+        return $this->belongsTo(Host::class, 'votable_host_1_id');
+    }
+
+    public function votableHost2(): BelongsTo
+    {
+        return $this->belongsTo(Host::class, 'votable_host_2_id');
+    }
+
+    public function votableHosts(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                $hosts = collect();
+
+                if ($this->votableHost1) {
+                    $hosts->push($this->votableHost1);
+                }
+
+                if ($this->votableHost2) {
+                    $hosts->push($this->votableHost2);
+                }
+
+                return $hosts;
+            }
+        );
     }
 }

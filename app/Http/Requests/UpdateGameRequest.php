@@ -27,6 +27,8 @@ class UpdateGameRequest extends FormRequest
             'title' => ['sometimes', 'nullable', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string', 'max:255'],
             'access_code' => ['sometimes', 'string', 'max:255'],
+            'votable_host_1_id' => ['sometimes', 'uuid', 'exists:hosts,id'],
+            'votable_host_2_id' => ['sometimes', 'uuid', 'exists:hosts,id'],
         ];
     }
 }

@@ -11,12 +11,18 @@ import Stack from '@/Stencil/Stack.vue'
 import Card from '@/Stencil/Card.vue'
 import Avatar from '@/Stencil/Avatar.vue'
 import Table from '@/Stencil/Table.vue'
+import Icon from '@/Stencil/Icon.vue'
+import Modal from '@/Stencil/Modal.vue'
 
 import FormTextInput from '@/Stencil/Forms/FormInput.vue'
 import FormAvatar from '@/Stencil/Forms/FormAvatar.vue'
 import FormColorPicker from '@/Stencil/Forms/FormColorPicker.vue'
 
 const props = defineProps({
+  auth: {
+    type: Object,
+    required: true,
+  },
   hosts: {
     type: Array,
     required: true,
@@ -28,6 +34,7 @@ const props = defineProps({
 })
 
 const isSlideoverOpen = ref(false)
+const showDeleteModal = ref(false)
 
 const form = useForm({
   name: '',
@@ -97,6 +104,22 @@ function closeEditSlideover() {
 const asset = (path) => {
   return path?.startsWith('http') ? path : `/storage/${path}`
 }
+
+const hostToDelete = ref(null)
+
+function deleteHost(host) {
+  hostToDelete.value = host
+  showDeleteModal.value = true
+}
+
+function confirmDeleteHost() {
+  router.delete(route('hosts.destroy', { host: hostToDelete.value.id }), {
+    preserveScroll: true,
+    onSuccess: () => {
+      showDeleteModal.value = false
+    },
+  })
+}
 </script>
 
 <template>
@@ -116,6 +139,7 @@ const asset = (path) => {
           <tr class="text-left">
             <th class="w-12"></th>
             <th>Name</th>
+            <th></th>
             <th></th>
           </tr>
         </template>
@@ -139,8 +163,20 @@ const asset = (path) => {
               {{ host.name }}
             </td>
             <td></td>
-            <td class="text-right">
-              <Button theme="primary-outline" icon="edit" @click="editHost(host)" />
+            <td>
+              <div class="flex space-x-4 justify-end items-center text-right">
+                <button
+                  v-if="auth.user.current_host_id !== host.id"
+                  class="ml-auto"
+                  theme="danger-outline"
+                  icon="delete"
+                  @click="deleteHost(host)"
+                >
+                  <Icon icon="delete" size="xsmall" class="text-gray-400 hover:text-red-500" />
+                  <span class="sr-only">Remove host {{ host.name }}</span>
+                </button>
+                <Button theme="primary-outline" icon="edit" @click="editHost(host)" />
+              </div>
             </td>
           </tr>
         </template>
@@ -257,6 +293,27 @@ const asset = (path) => {
           </Stack>
         </form>
       </SlideOut>
+    </teleport>
+
+    <teleport to="body">
+      <Modal title="Remove Host" :isOpen="showDeleteModal" @close="showDeleteModal = false">
+        <div class="flex space-x-6 w-full">
+          <Icon icon="danger" class="text-red-500" size="large" />
+          <Stack class="w-full">
+            <Stack space="small">
+              <Typography variant="h1">
+                Are you sure you want to remove
+                {{ hostToDelete.name }}?
+              </Typography>
+              <Typography> This action cannot be undone. </Typography>
+            </Stack>
+            <div class="flex justify-end space-x-3">
+              <Button theme="subdued" @click="showDeleteModal = false"> Cancel </Button>
+              <Button theme="danger" @click="confirmDeleteHost"> Remove </Button>
+            </div>
+          </Stack>
+        </div>
+      </Modal>
     </teleport>
   </AuthenticatedLayout>
 </template>

@@ -16,6 +16,7 @@ import Switch from '@/Stencil/Switch.vue'
 
 import FormTextInput from '@/Stencil/Forms/FormInput.vue'
 import FormTextarea from '@/Stencil/Forms/FormTextarea.vue'
+import FormSelect from '@/Stencil/Forms/FormSelect.vue'
 
 const props = defineProps({
   game: {
@@ -24,6 +25,10 @@ const props = defineProps({
   },
   show: {
     type: Object,
+    required: true,
+  },
+  hosts: {
+    type: Array,
     required: true,
   },
 })
@@ -35,7 +40,13 @@ const form = useForm({
   title: props.game.data.title,
   access_code: props.game.data.access_code,
   description: props.game.data.description,
+  votable_host_1_id: props.game.data.votableHost1?.id,
+  votable_host_2_id: props.game.data.votableHost2?.id,
 })
+
+function getHostOptions(host) {
+  return props.hosts.filter((h) => h.id !== host)
+}
 
 const formQuestion = useForm({
   question: '',
@@ -146,7 +157,7 @@ function submit() {
             icon="delete"
             @click="showDeleteModal = true"
           >
-            <Icon icon="delete" size="small" class="text-red-500" />
+            <Icon icon="delete" size="xsmall" class="text-gray-400 hover:text-red-500" />
             <span class="sr-only">Delete game: {{ game.data.title }}</span>
           </button>
 
@@ -167,7 +178,7 @@ function submit() {
           <Typography variant="h2"> Game Details </Typography>
 
           <form @submit.prevent="submit">
-            <Stack>
+            <Stack space="medium">
               <div>
                 <FormTextInput
                   v-model="form.title"
@@ -180,6 +191,7 @@ function submit() {
               <div>
                 <FormTextarea
                   v-model="form.description"
+                  rows="2"
                   label="Description"
                   :error="form.errors.description"
                 />
@@ -192,6 +204,26 @@ function submit() {
                   :error="form.errors.access_code"
                 />
               </div>
+
+              <Stack space="medium">
+                <FormSelect
+                  v-model="form.votable_host_1_id"
+                  label="Votable Host 1"
+                  :options="props.hosts"
+                  optionLabel="name"
+                  optionValue="id"
+                  :error="form.errors.votable_host_1_id"
+                />
+
+                <FormSelect
+                  v-model="form.votable_host_2_id"
+                  label="Votable Host 2"
+                  :options="props.hosts"
+                  optionLabel="name"
+                  optionValue="id"
+                  :error="form.errors.votable_host_2_id"
+                />
+              </Stack>
 
               <div class="flex justify-end space-x-4">
                 <Button

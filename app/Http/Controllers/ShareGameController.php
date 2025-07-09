@@ -25,7 +25,7 @@ class ShareGameController extends Controller
 
         return Inertia::render('Games/ShareGame', [
             'game' => GameResource::make($game),
-            'hosts' => $game->show->hosts,
+            'hosts' => $game->votableHosts,
             'activeQuestion' => $game->activeQuestion,
             'activeWatchers' => $game->watchers->count(),
             'voteCounts' => $voteCounts,

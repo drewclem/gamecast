@@ -16,6 +16,16 @@ class Host extends Model
 
     protected $guarded = ['id'];
 
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Host $host) {
+            if ($host->user->current_host_id === $host->id) {
+                $host->user->update(['current_host_id' => null]);
+            }
+        });
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

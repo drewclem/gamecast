@@ -52,7 +52,6 @@ class PlayGameController extends Controller
             $game->activeQuestion['winners'] = $winners;
 
             $voteCounts = $game->activeQuestion->getVoteCounts();
-            // dd($voteCounts);
         } else {
             $voteCounts = [
                 'byHost' => [],
@@ -61,7 +60,7 @@ class PlayGameController extends Controller
         }
 
         return Inertia::render('Games/PlayGame', [
-            'hosts' => $game->show->hosts,
+            'hosts' => $game->votableHosts,
             'game' => GameResource::make($game),
             'watcher' => $watcher,
             'activeQuestion' => $game->activeQuestion,

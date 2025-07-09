@@ -25,7 +25,7 @@ class ControlPanelGameController extends Controller
         }
 
         return Inertia::render('Games/ControlPanel', [
-            'hosts' => $game->show->hosts,
+            'hosts' => $game->votableHosts,
             'game' => GameResource::make($game),
             'activeQuestion' => $game->activeQuestion,
             'activeWatchers' => $game->watchers->count(),

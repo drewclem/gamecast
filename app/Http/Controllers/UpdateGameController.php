@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Game;
 use App\Models\Question;
+use App\Enums\QuestionStatus;
 use App\Http\Requests\UpdateGameRequest;
 
 class UpdateGameController extends Controller
@@ -25,7 +26,7 @@ class UpdateGameController extends Controller
 
         if ($oldQuestionId && $oldQuestionId !== $newQuestionId) {
             $oldQuestion = Question::find($oldQuestionId);
-            if ($oldQuestion) {
+            if ($oldQuestion && $oldQuestion->status !== QuestionStatus::REVEALED) {
                 $oldQuestion->update(['status' => 'closed']);
             }
         }
@@ -36,6 +37,15 @@ class UpdateGameController extends Controller
                 $newQuestion->update(['status' => 'active']);
             }
         }
+
+        if (isset($validated['votable_host_1_id']) && $validated['votable_host_1_id'] !== $game->votable_host_1_id) {
+            $game->update(['votable_host_1_id' => $validated['votable_host_1_id']]);
+        }
+
+        if (isset($validated['votable_host_2_id']) && $validated['votable_host_2_id'] !== $game->votable_host_2_id) {
+            $game->update(['votable_host_2_id' => $validated['votable_host_2_id']]);
+        }
+
         $game->update($validated);
 
         return redirect()->back()->with('success', 'Game updated successfully');

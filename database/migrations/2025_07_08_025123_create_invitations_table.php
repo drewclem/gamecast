@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('invitations', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('host_id')->constrained('hosts')->nullOnDelete();
+            $table->foreignUuid('host_id')->constrained('hosts')->cascadeOnDelete();
             $table->string('token');
             $table->timestamp('expires_at');
             $table->timestamp('accepted_at')->nullable();

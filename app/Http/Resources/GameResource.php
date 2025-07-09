@@ -25,6 +25,9 @@ class GameResource extends JsonResource
             'liveQuestions' => $this->whenLoaded('liveQuestions'),
             'questions' => $this->whenLoaded('questions'),
             'watchers' => $this->whenLoaded('watchers'),
+            'votableHost1' => $this->votableHost1,
+            'votableHost2' => $this->votableHost2,
+            'votableHosts' => $this->votableHosts,
         ];
     }
 }

@@ -11,10 +11,11 @@ class EditGameController extends Controller
 {
   public function __invoke(EditGameRequest $request, Game $game)
   {
-    $game->load('questions.host.user');
+    $game->load(['questions.host.user']);
 
     return Inertia::render('Games/EditGame', [
       'game' => GameResource::make($game),
+      'hosts' => $game->show->hosts,
     ]);
   }
 }
