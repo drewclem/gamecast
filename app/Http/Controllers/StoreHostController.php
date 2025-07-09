@@ -49,7 +49,7 @@ class StoreHostController extends Controller
         $host->update(['avatar' => $path]);
       }
 
-      Mail::to($user->email)->queue(new HostInvite($user->currentHost, $invitation));
+      Mail::to($user->email)->send(new HostInvite($user->currentHost, $invitation));
 
       return $host;
     });
