@@ -59,18 +59,19 @@
             screen.
           </p>
           <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-            <button
+            <a
               class="bg-gradient-to-r from-yellow-500 to-amber-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:from-yellow-600 hover:to-amber-600 transition-all duration-200 flex items-center justify-center"
+              :href="route('register')"
             >
               <Play class="w-5 h-5 mr-2" />
               Start Playing Now
-            </button>
-            <button
+            </a>
+            <!-- <button
               class="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-full text-lg font-semibold hover:border-gray-400 transition-all duration-200 flex items-center justify-center"
             >
               Watch Demo
               <ChevronRight class="w-5 h-5 ml-2" />
-            </button>
+            </button> -->
           </div>
         </div>
       </div>
@@ -230,16 +231,17 @@
           Take Arena
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <button
+          <a
             class="bg-white text-yellow-600 px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-100 transition-all duration-200"
+            :href="route('register')"
           >
-            Start Free Trial
-          </button>
-          <button
+            Start Playing Now
+          </a>
+          <!-- <button
             class="border-2 border-white text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-white hover:text-yellow-600 transition-all duration-200"
           >
             Book a Demo
-          </button>
+          </button> -->
         </div>
       </div>
     </section>
@@ -256,7 +258,7 @@
               Transform any gathering into an interactive game show experience.
             </p>
           </div>
-          <div>
+          <!-- <div>
             <h4 class="font-semibold mb-4">Product</h4>
             <ul class="space-y-2 text-gray-400">
               <li><a href="#" class="hover:text-white">Features</a></li>
@@ -279,7 +281,7 @@
               <li><a href="#" class="hover:text-white">Blog</a></li>
               <li><a href="#" class="hover:text-white">Careers</a></li>
             </ul>
-          </div>
+          </div> -->
         </div>
         <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
           <p>&copy; {{ new Date().getFullYear() }} Hot Take Arena. All rights reserved.</p>

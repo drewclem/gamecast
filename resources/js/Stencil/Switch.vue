@@ -26,7 +26,7 @@ const emit = defineEmits(['update:modelValue'])
     :disabled="disabled"
     :name="name"
     @update:checked="emit('update:modelValue', $event)"
-    class="relative inline-flex h-4 w-8 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-yellow-500 data-[state=unchecked]:bg-gray-200"
+    class="relative inline-flex h-4 w-8 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-amber-500 data-[state=unchecked]:bg-gray-200"
   >
     <SwitchThumb
       class="block h-3 w-3 transform rounded-full bg-white transition-transform duration-100 will-change-transform data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0.5"
