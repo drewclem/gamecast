@@ -207,7 +207,7 @@ async function castVote(questionId, hostId) {
                   <div class="p-6" v-for="host in hosts" :key="host.id">
                     <button
                       :style="{ backgroundColor: host.color }"
-                      class="w-5/6 mx-auto flex items-center justify-center p-3 rounded-full group shadow-md aspect-square transition-all duration-300"
+                      class="w-full mx-auto flex items-center justify-center p-3 rounded-full group shadow-md aspect-square transition-all duration-300"
                       :class="{
                         'pointer-events-none opacity-50': hasVotedOnQuestion(question.id),
                         'scale-110 animate-pulse-fast':
