@@ -78,13 +78,25 @@ const joinUrl = computed(() => {
                 <div class="w-2/3">
                   <div class="relative flex items-center">
                     <!-- Left avatar (first host) -->
-                    <div class="absolute -left-1 top-1/2 -translate-y-1/2 z-10">
-                      <Avatar v-if="hosts[0]?.avatar" :src="asset(hosts[0].avatar)" />
+                    <div class="absolute -left-2 top-1/2 -translate-y-1/2 z-10">
+                      <!-- <Avatar v-if="hosts[0]?.avatar" :src="asset(hosts[0].avatar)" /> -->
+                      <img
+                        v-if="hosts[0]?.avatar"
+                        :src="asset(hosts[0].avatar)"
+                        alt="Host avatar"
+                        class="h-16 object-cover"
+                      />
                     </div>
 
                     <!-- Right avatar (second host) -->
-                    <div class="absolute -right-1 top-1/2 -translate-y-1/2 z-10">
-                      <Avatar v-if="hosts[1]?.avatar" :src="asset(hosts[1].avatar)" />
+                    <div class="absolute -right-2 top-1/2 -translate-y-1/2 z-10">
+                      <!-- <Avatar v-if="hosts[1]?.avatar" :src="asset(hosts[1].avatar)" /> -->
+                      <img
+                        v-if="hosts[1]?.avatar"
+                        :src="asset(hosts[1].avatar)"
+                        alt="Host avatar"
+                        class="h-16 object-cover"
+                      />
                     </div>
 
                     <!-- Vote bars -->
