@@ -33,6 +33,8 @@ import {
   RiUserLine,
   RiRefreshLine,
   RiMapPinLine,
+  RiLineChartLine,
+  RiChatPollLine,
 } from '@remixicon/vue'
 
 const props = defineProps({
@@ -141,6 +143,10 @@ const remixIcon = computed(() => {
       return RiRefreshLine
     case 'map-pin':
       return RiMapPinLine
+    case 'chart':
+      return RiLineChartLine
+    case 'poll':
+      return RiChatPollLine
     default:
       return null
   }

@@ -150,7 +150,7 @@ function submit() {
           {{ game.data.title }}
         </Typography>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="flex items-center space-x-4">
           <button
             class="ml-auto"
             theme="danger-outline"
@@ -160,6 +160,14 @@ function submit() {
             <Icon icon="delete" size="xsmall" class="text-gray-400 hover:text-red-500" />
             <span class="sr-only">Delete game: {{ game.data.title }}</span>
           </button>
+
+          <Button
+            theme="primary-outline"
+            :href="route('games.analytics', props.game.data)"
+            icon="poll"
+          >
+            Live Voting View
+          </Button>
 
           <Button
             :href="route('games.control-panel', game.data.slug)"

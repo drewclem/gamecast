@@ -93,9 +93,18 @@ watch(resultsRevealed, (newValue, oldValue) => {
     <template #header>
       <div class="flex justify-between items-center">
         <Typography variant="h1">{{ props.game.data.title }} - Control Panel</Typography>
-        <div class="flex items-center space-x-2 text-green-600">
-          <Typography class="font-semibold"> {{ data.activeWatchers ?? 0 }} </Typography>
-          <Icon icon="team" size="small" class="text-green-600" />
+        <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-2 text-green-600">
+            <Typography class="font-semibold"> {{ data.activeWatchers ?? 0 }} </Typography>
+            <Icon icon="team" size="small" class="text-green-600" />
+          </div>
+          <Button
+            theme="primary-outline"
+            :href="route('games.analytics', props.game.data)"
+            icon="poll"
+          >
+            Live Voting View
+          </Button>
         </div>
       </div>
     </template>
