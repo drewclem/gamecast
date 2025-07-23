@@ -1,4 +1,5 @@
 <template>
+  <Head title="Welcome" />
   <div class="min-h-screen bg-gradient-to-br from-yellow-50 to-amber-50">
     <!-- Navigation -->
     <nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">

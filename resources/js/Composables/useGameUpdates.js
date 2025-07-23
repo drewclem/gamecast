@@ -12,12 +12,7 @@ export function useGameUpdates(gameId) {
     ...initialProps.value.game.data,
   })
 
-  const voteCounts = ref(
-    initialProps.value.voteCounts || {
-      byHost: {},
-      total: 0,
-    }
-  )
+  const voteCounts = ref(initialProps.value.voteCounts || {})
   const lastUpdate = ref(Date.now())
 
   watch(initialProps, (newProps) => {
@@ -39,15 +34,29 @@ export function useGameUpdates(gameId) {
     })
 
     echoChannel.listen('QuestionVotesUpdated', (e) => {
-      if (voteCounts.value[e.question_id]) {
-        voteCounts.value[e.question_id] = {
-          byHost: e.votes_by_host,
-          total: e.total_votes,
-        }
+      voteCounts.value[e.question_id] = {
+        byHost: e.votes_by_host,
+        total: e.total_votes,
       }
 
       if (e.game) {
         game.value = e.game
+      }
+      lastUpdate.value = Date.now()
+    })
+
+    echoChannel.listen('QuestionsUpdated', (e) => {
+      console.log('QuestionsUpdated event received:', e)
+      game.value.questions = e.questions
+      lastUpdate.value = Date.now()
+    })
+
+    echoChannel.listen('VoteCast', (e) => {
+      const idx = game.value.questions.findIndex((q) => q.id === e.question_id)
+      if (idx !== -1) {
+        // Only update the vote fields
+        game.value.questions[idx].votesByHost = e.votesByHost
+        game.value.questions[idx].votes = e.votes
       }
       lastUpdate.value = Date.now()
     })
@@ -62,6 +71,8 @@ export function useGameUpdates(gameId) {
     if (echoChannel) {
       echoChannel.stopListening('WatcherCountUpdated')
       echoChannel.stopListening('QuestionVotesUpdated')
+      echoChannel.stopListening('QuestionsUpdated')
+      echoChannel.stopListening('VoteCast')
     }
   })
 
@@ -69,6 +80,7 @@ export function useGameUpdates(gameId) {
     data: {
       activeWatchers,
       voteCounts,
+      gameData: game,
     },
     game,
     lastUpdate,

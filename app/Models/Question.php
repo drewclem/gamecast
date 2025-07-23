@@ -172,4 +172,29 @@ class Question extends Model
         $winningHosts = array_keys($voteCounts['byHost'], max($voteCounts['byHost']));
         return Host::whereIn('id', $winningHosts)->get();
     }
+
+    public function votesByHost(): array
+    {
+        $gameHosts = $this->game->votableHosts->pluck('id')->map(function ($id) {
+            return (string)$id;
+        })->toArray();
+
+        // Initialize counts for all hosts to zero
+        $voteCounts = array_fill_keys($gameHosts, 0);
+
+        // Get actual vote counts
+        $actualCounts = $this->votes()
+            ->select('host_id', DB::raw('count(*) as count'))
+            ->groupBy('host_id')
+            ->get()
+            ->pluck('count', 'host_id')
+            ->toArray();
+
+        // Merge with initialized counts (overwrite zeros with actual counts)
+        foreach ($actualCounts as $hostId => $count) {
+            $voteCounts[(string)$hostId] = (int)$count;
+        }
+
+        return $voteCounts;
+    }
 }

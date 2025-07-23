@@ -21,6 +21,9 @@ class PlayGameController extends Controller
             'activeQuestion.votes',
             'openQuestions.votes',
             'liveQuestions.votes',
+            'openQuestions.host',
+            'liveQuestions.host',
+            'activeQuestion.host',
             'watchers' => function ($query) {
                 $query->where('last_active_at', '>=', now()->subMinutes(5));
             }

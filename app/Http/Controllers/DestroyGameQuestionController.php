@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Game;
 use App\Models\Question;
 use App\Http\Requests\DestroyGameQuestionRequest;
+use App\Events\QuestionsUpdated;
 
 class DestroyGameQuestionController extends Controller
 {
@@ -14,6 +15,8 @@ class DestroyGameQuestionController extends Controller
     public function __invoke(DestroyGameQuestionRequest $request, Game $game, Question $question)
     {
         $question->delete();
+
+        broadcast(new QuestionsUpdated($game));
 
         return back()->with('success', 'Question deleted successfully');
     }

@@ -23,7 +23,12 @@ class GameResource extends JsonResource
             'qr_code_url' => $this->qr_code_url,
             'openQuestions' => $this->whenLoaded('openQuestions'),
             'liveQuestions' => $this->whenLoaded('liveQuestions'),
-            'questions' => $this->whenLoaded('questions'),
+            'questions' => $this->whenLoaded('questions', function ($questions) {
+                return $questions->map(function ($question) {
+                    $question->votesByHost = $question->votesByHost();
+                    return $question;
+                })->values()->all();
+            }),
             'watchers' => $this->whenLoaded('watchers'),
             'votableHost1' => $this->votableHost1,
             'votableHost2' => $this->votableHost2,

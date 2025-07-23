@@ -236,205 +236,207 @@ const isTie = computed(() => {
           </Stack>
         </Card>
 
-        <!-- Waiting for Question -->
-        <Card v-if="!currentQuestion" padding="large" class="text-center">
-          <Stack space="medium">
-            <Icon icon="loading" size="large" class="text-gray-400 animate-pulse" />
-            <Stack space="small">
-              <Typography variant="h2">No live question...</Typography>
-              <Typography variant="body-small" class="text-gray-600">
-                Vote on questions while you mingle and chat with others!
-              </Typography>
-            </Stack>
-          </Stack>
-        </Card>
-
-        <!-- Question Card -->
-        <Card v-else padding="medium">
-          <Stack space="medium">
-            <!-- Loading State -->
-            <div v-if="loading" class="text-center py-8">
-              <Icon icon="loading" size="large" class="text-gray-400 animate-spin" />
-              <Typography variant="body" class="text-gray-600 mt-2">Loading...</Typography>
-            </div>
-
-            <!-- Question Content -->
-            <template v-else>
-              <!-- Status Badge -->
-              <div class="text-center">
-                <Typography
-                  variant="body-small"
-                  class="inline-flex items-center px-2.5 py-0.5 rounded-full"
-                  :class="{
-                    'bg-green-100 text-green-800': votingOpen,
-                    'bg-yellow-100 text-yellow-800': votingClosed && !resultsRevealed,
-                    'bg-blue-100 text-blue-800': resultsRevealed,
-                  }"
-                >
-                  {{
-                    votingOpen
-                      ? 'Voting Open'
-                      : resultsRevealed
-                      ? 'Results Revealed'
-                      : 'Voting Closed'
-                  }}
-                </Typography>
-              </div>
-
-              <Typography variant="billboard" class="text-center">
-                {{ currentQuestion.question }}
-              </Typography>
-
-              <!-- Voting Buttons -->
-              <div v-if="votingOpen" class="grid grid-cols-2 gap-4">
-                <button
-                  v-for="host in hosts"
-                  :key="host.id"
-                  :style="{ backgroundColor: host.color }"
-                  class="w-full flex items-center justify-center p-3 rounded-full aspect-square group shadow-md transition-all duration-300"
-                  :class="{
-                    'pointer-events-none opacity-50': hasVoted,
-                    'scale-110 animate-pulse-fast': animatingVote && animatingHostId === host.id,
-                  }"
-                  @click="castVote(host.id)"
-                  :disabled="hasVoted || isVoting"
-                >
-                  <img
-                    :src="`/storage/${host.avatar}`"
-                    :alt="host.name"
-                    class="w-3/4 group-hover:scale-110 transition-all duration-300"
-                  />
-                  <span class="sr-only">Vote for {{ host.name }}</span>
-                </button>
-              </div>
-
-              <!-- Vote Counter during open voting -->
-              <div v-if="votingOpen" class="text-center">
+        <template v-if="game?.data?.presenter_mode">
+          <!-- Waiting for Question -->
+          <Card v-if="!currentQuestion" padding="large" class="text-center">
+            <Stack space="medium">
+              <Icon icon="loading" size="large" class="text-gray-400 animate-pulse" />
+              <Stack space="small">
+                <Typography variant="h2">No live question...</Typography>
                 <Typography variant="body-small" class="text-gray-600">
-                  {{ voteCounts.total }}
-                  {{ voteCounts.total === 1 ? 'vote' : 'votes' }} cast so far
+                  Vote on questions while you mingle and chat with others!
                 </Typography>
+              </Stack>
+            </Stack>
+          </Card>
+
+          <!-- Question Card -->
+          <Card v-else padding="medium">
+            <Stack space="medium">
+              <!-- Loading State -->
+              <div v-if="loading" class="text-center py-8">
+                <Icon icon="loading" size="large" class="text-gray-400 animate-spin" />
+                <Typography variant="body" class="text-gray-600 mt-2">Loading...</Typography>
               </div>
 
-              <!-- Voting Closed Message -->
-              <div v-else-if="votingClosed && !resultsRevealed" class="text-center">
-                <Typography variant="body-lg" class="text-gray-600">
-                  Voting is now closed. Results will be revealed soon!
-                </Typography>
-                <Typography variant="body-small" class="text-gray-500 mt-2">
-                  {{ voteCounts?.total ?? 0 }}
-                  {{ voteCounts?.total === 1 ? 'vote' : 'votes' }} were cast
-                </Typography>
-              </div>
+              <!-- Question Content -->
+              <template v-else>
+                <!-- Status Badge -->
+                <div class="text-center">
+                  <Typography
+                    variant="body-small"
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full"
+                    :class="{
+                      'bg-green-100 text-green-800': votingOpen,
+                      'bg-yellow-100 text-yellow-800': votingClosed && !resultsRevealed,
+                      'bg-blue-100 text-blue-800': resultsRevealed,
+                    }"
+                  >
+                    {{
+                      votingOpen
+                        ? 'Voting Open'
+                        : resultsRevealed
+                        ? 'Results Revealed'
+                        : 'Voting Closed'
+                    }}
+                  </Typography>
+                </div>
 
-              <!-- Results Display -->
-              <div v-else-if="resultsRevealed" class="py-4">
-                <!-- Results Reveal Animation -->
-                <div v-if="isRevealAnimating" class="text-center py-8">
-                  <Typography variant="h1" class="text-4xl font-bold animate-bounce">
-                    {{ countdown > 0 ? countdown : 'The winner is...' }}
+                <Typography variant="billboard" class="text-center">
+                  {{ currentQuestion.question }}
+                </Typography>
+
+                <!-- Voting Buttons -->
+                <div v-if="votingOpen" class="grid grid-cols-2 gap-4">
+                  <button
+                    v-for="host in hosts"
+                    :key="host.id"
+                    :style="{ backgroundColor: host.color }"
+                    class="w-full flex items-center justify-center p-3 rounded-full aspect-square group shadow-md transition-all duration-300"
+                    :class="{
+                      'pointer-events-none opacity-50': hasVoted,
+                      'scale-110 animate-pulse-fast': animatingVote && animatingHostId === host.id,
+                    }"
+                    @click="castVote(host.id)"
+                    :disabled="hasVoted || isVoting"
+                  >
+                    <img
+                      :src="`/storage/${host.avatar}`"
+                      :alt="host.name"
+                      class="w-3/4 group-hover:scale-110 transition-all duration-300"
+                    />
+                    <span class="sr-only">Vote for {{ host.name }}</span>
+                  </button>
+                </div>
+
+                <!-- Vote Counter during open voting -->
+                <div v-if="votingOpen" class="text-center">
+                  <Typography variant="body-small" class="text-gray-600">
+                    {{ voteCounts.total }}
+                    {{ voteCounts.total === 1 ? 'vote' : 'votes' }} cast so far
+                  </Typography>
+                </div>
+
+                <!-- Voting Closed Message -->
+                <div v-else-if="votingClosed && !resultsRevealed" class="text-center">
+                  <Typography variant="body-lg" class="text-gray-600">
+                    Voting is now closed. Results will be revealed soon!
+                  </Typography>
+                  <Typography variant="body-small" class="text-gray-500 mt-2">
+                    {{ voteCounts?.total ?? 0 }}
+                    {{ voteCounts?.total === 1 ? 'vote' : 'votes' }} were cast
                   </Typography>
                 </div>
 
                 <!-- Results Display -->
-                <div v-else>
-                  <Stack v-if="isTie" space="medium" class="text-center">
-                    <Typography variant="h1">It's a Tie!</Typography>
-                    <ul class="flex justify-center items-center gap-4">
-                      <li
-                        v-for="winner in currentQuestion.winners"
-                        :key="winner.id"
-                        :style="{ backgroundColor: winner.color }"
-                        class="rounded-full p-1 h-20 w-20 flex items-center justify-center"
-                      >
-                        <img :src="`/storage/${winner.avatar}`" :alt="winner.name" class="w-16" />
-                      </li>
-                    </ul>
-                  </Stack>
-                  <div v-else>
-                    <div class="relative rounded-lg mb-4">
-                      <!-- Vote Bars -->
-                      <!-- Winner Announcement -->
-                      <Stack v-if="currentQuestion.winners" space="medium" class="text-center">
-                        <Stack space="small">
-                          <div
-                            class="relative flex items-center justify-center p-8 rounded-full max-w-[75%] aspect-square mx-auto"
-                          >
-                            <div
-                              class="absolute -inset-2 rounded-full opacity-25 animate-pulse"
-                              :style="{ backgroundColor: currentQuestion.winners[0].color }"
-                            />
-                            <div
-                              class="relative rounded-full w-48 h-48"
-                              :style="{ backgroundColor: currentQuestion.winners[0].color }"
-                            >
-                              <img
-                                :src="`/storage/${currentQuestion.winners[0].avatar}`"
-                                :alt="currentQuestion.winners[0].name"
-                              />
-                            </div>
-                          </div>
-                          <Typography variant="billboard"
-                            >{{ currentQuestion.winners[0].name }} wins!</Typography
-                          >
-                        </Stack>
-                        <div
-                          v-for="host in hosts"
-                          :key="host.id"
-                          class="relative h-16 mb-2 last:mb-0"
-                        >
-                          <div
-                            class="absolute inset-0 transition-all duration-1000 rounded-md"
-                            :style="{
-                              width: `${getVotePercentage(host.id)}%`,
-                              backgroundColor: host.color,
-                              opacity: isRevealAnimating ? 0 : 1,
-                            }"
-                          >
-                            <div class="absolute inset-0 flex items-center px-4">
-                              <Typography
-                                variant="body"
-                                class="font-bold"
-                                :class="{ 'text-white': getVotePercentage(host.id) > 0 }"
-                              >
-                                {{ host.name }}: {{ getVotesForHost(host.id) }}
-                              </Typography>
-                            </div>
-                          </div>
-                        </div>
-                      </Stack>
+                <div v-else-if="resultsRevealed" class="py-4">
+                  <!-- Results Reveal Animation -->
+                  <div v-if="isRevealAnimating" class="text-center py-8">
+                    <Typography variant="h1" class="text-4xl font-bold animate-bounce">
+                      {{ countdown > 0 ? countdown : 'The winner is...' }}
+                    </Typography>
+                  </div>
 
-                      <Typography variant="body-small" class="text-center text-gray-600 mt-4">
-                        {{ voteCounts?.total ?? 0 }} total
-                        {{ voteCounts?.total === 1 ? 'vote' : 'votes' }}
-                      </Typography>
+                  <!-- Results Display -->
+                  <div v-else>
+                    <Stack v-if="isTie" space="medium" class="text-center">
+                      <Typography variant="h1">It's a Tie!</Typography>
+                      <ul class="flex justify-center items-center gap-4">
+                        <li
+                          v-for="winner in currentQuestion.winners"
+                          :key="winner.id"
+                          :style="{ backgroundColor: winner.color }"
+                          class="rounded-full p-1 h-20 w-20 flex items-center justify-center"
+                        >
+                          <img :src="`/storage/${winner.avatar}`" :alt="winner.name" class="w-16" />
+                        </li>
+                      </ul>
+                    </Stack>
+                    <div v-else>
+                      <div class="relative rounded-lg mb-4">
+                        <!-- Vote Bars -->
+                        <!-- Winner Announcement -->
+                        <Stack v-if="currentQuestion.winners" space="medium" class="text-center">
+                          <Stack space="small">
+                            <div
+                              class="relative flex items-center justify-center p-8 rounded-full max-w-[75%] aspect-square mx-auto"
+                            >
+                              <div
+                                class="absolute -inset-2 rounded-full opacity-25 animate-pulse"
+                                :style="{ backgroundColor: currentQuestion.winners[0].color }"
+                              />
+                              <div
+                                class="relative rounded-full w-48 h-48"
+                                :style="{ backgroundColor: currentQuestion.winners[0].color }"
+                              >
+                                <img
+                                  :src="`/storage/${currentQuestion.winners[0].avatar}`"
+                                  :alt="currentQuestion.winners[0].name"
+                                />
+                              </div>
+                            </div>
+                            <Typography variant="billboard"
+                              >{{ currentQuestion.winners[0].name }} wins!</Typography
+                            >
+                          </Stack>
+                          <div
+                            v-for="host in hosts"
+                            :key="host.id"
+                            class="relative h-16 mb-2 last:mb-0"
+                          >
+                            <div
+                              class="absolute inset-0 transition-all duration-1000 rounded-md"
+                              :style="{
+                                width: `${getVotePercentage(host.id)}%`,
+                                backgroundColor: host.color,
+                                opacity: isRevealAnimating ? 0 : 1,
+                              }"
+                            >
+                              <div class="absolute inset-0 flex items-center px-4">
+                                <Typography
+                                  variant="body"
+                                  class="font-bold"
+                                  :class="{ 'text-white': getVotePercentage(host.id) > 0 }"
+                                >
+                                  {{ host.name }}: {{ getVotesForHost(host.id) }}
+                                </Typography>
+                              </div>
+                            </div>
+                          </div>
+                        </Stack>
+
+                        <Typography variant="body-small" class="text-center text-gray-600 mt-4">
+                          {{ voteCounts?.total ?? 0 }} total
+                          {{ voteCounts?.total === 1 ? 'vote' : 'votes' }}
+                        </Typography>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <!-- Vote Confirmation -->
-              <div v-if="hasVoted && votingOpen" class="text-center">
-                <div class="flex items-center justify-center gap-2 mt-2">
-                  <div
-                    v-if="getVotedHost(currentQuestion.id)"
-                    class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0"
-                    :style="{ backgroundColor: getVotedHost(currentQuestion.id)?.color }"
-                  >
-                    <img
-                      :src="`/storage/${getVotedHost(currentQuestion.id)?.avatar}`"
-                      :alt="getVotedHost(currentQuestion.id)?.name"
-                      class="w-full h-full object-cover"
-                    />
+                <!-- Vote Confirmation -->
+                <div v-if="hasVoted && votingOpen" class="text-center">
+                  <div class="flex items-center justify-center gap-2 mt-2">
+                    <div
+                      v-if="getVotedHost(currentQuestion.id)"
+                      class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0"
+                      :style="{ backgroundColor: getVotedHost(currentQuestion.id)?.color }"
+                    >
+                      <img
+                        :src="`/storage/${getVotedHost(currentQuestion.id)?.avatar}`"
+                        :alt="getVotedHost(currentQuestion.id)?.name"
+                        class="w-full h-full object-cover"
+                      />
+                    </div>
+                    <Typography variant="body-small" class="text-green-600">
+                      You voted for {{ getVotedHost(currentQuestion.id)?.name || 'a host' }}!
+                    </Typography>
                   </div>
-                  <Typography variant="body-small" class="text-green-600">
-                    You voted for {{ getVotedHost(currentQuestion.id)?.name || 'a host' }}!
-                  </Typography>
                 </div>
-              </div>
-            </template>
-          </Stack>
-        </Card>
+              </template>
+            </Stack>
+          </Card>
+        </template>
       </div>
       <OpenQuestions :gameSlug="game.data.slug" :hosts="hosts" />
     </Stack>

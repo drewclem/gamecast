@@ -6,6 +6,7 @@ use App\Models\Game;
 use App\Models\Question;
 use App\Enums\QuestionStatus;
 use App\Http\Requests\UpdateGameQuestionRequest;
+use App\Events\QuestionsUpdated;
 
 class UpdateGameQuestionController extends Controller
 {
@@ -13,9 +14,11 @@ class UpdateGameQuestionController extends Controller
   {
     $question->update($request->validated());
 
-    if ($request->input('status') === QuestionStatus::REVEALED) {
+    if ($request->validated('status') === QuestionStatus::REVEALED) {
       $question->load(['votes', 'game.votableHosts']);
     }
+
+    broadcast(new QuestionsUpdated($game));
 
     return back()->with('success', 'Question updated successfully');
   }

@@ -3,11 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Game;
+use App\Events\VoteCast;
 use App\Models\Question;
+use Illuminate\Support\Facades\DB;
 use App\Events\QuestionVotesUpdated;
 use App\Http\Requests\StoreVoteRequest;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 
 class StoreVoteController extends Controller
@@ -29,6 +29,7 @@ class StoreVoteController extends Controller
             $question->getVoteCounts();
 
             broadcast(new QuestionVotesUpdated($question));
+            broadcast(new VoteCast($question));
 
             return redirect()->back()->with('success', 'Vote cast successfully');
         });

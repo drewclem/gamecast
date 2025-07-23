@@ -4,7 +4,7 @@
       <AccordionTrigger class="AccordionTrigger">
         <div class="flex items-center justify-between w-full">
           <div class="flex text-left items-center space-x-2">
-            <Typography>{{ title }}</Typography>
+            <slot name="title" />
             <div>
               <slot name="badge" />
             </div>

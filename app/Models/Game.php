@@ -51,7 +51,7 @@ class Game extends Model
 
     public function questions(): HasMany
     {
-        return $this->hasMany(Question::class)->orderBy('order_index');
+        return $this->hasMany(Question::class);
     }
 
     public function openQuestions(): HasMany

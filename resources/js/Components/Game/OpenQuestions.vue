@@ -10,6 +10,7 @@ import Carousel from '@/Stencil/Carousel/Carousel.vue'
 import CarouselSlide from '@/Stencil/Carousel/CarouselSlide.vue'
 import AccordionGroup from '@/Stencil/AccordionGroup.vue'
 import AccordionItem from '@/Stencil/AccordionItem.vue'
+import Avatar from '@/Stencil/Avatar.vue'
 
 const props = defineProps({
   gameSlug: {
@@ -20,8 +21,15 @@ const props = defineProps({
     type: Array,
     required: true,
   },
+  presenterMode: {
+    type: Boolean,
+    default: false,
+  },
 })
 
+const asset = (path) => {
+  return path?.startsWith('http') ? path : `/storage/${path}`
+}
 const { openQuestions, watcher } = useQuestionState(props.gameSlug, props.gameId)
 
 const isVoting = ref(false)
@@ -109,7 +117,7 @@ async function castVote(questionId, hostId) {
 
 <template>
   <Stack space="medium">
-    <Typography variant="h2">Open Questions</Typography>
+    <Typography v-if="presenterMode" variant="h2">Open Questions</Typography>
 
     <div>
       <!-- <Carousel hasPagination loop>
@@ -177,14 +185,26 @@ async function castVote(questionId, hostId) {
         <li>
           <AccordionGroup>
             <AccordionItem
-              :title="question.question"
               v-for="question in openQuestions"
               :key="question.id"
               :value="question.id"
+              class="py-3"
             >
-              <Stack space="medium">
+              <template #title>
+                <Stack space="xsmall">
+                  <Typography>{{ question.question }}</Typography>
+                  <div class="flex items-center gap-2">
+                    <Avatar :src="asset(question.host.avatar)" size="xsmall" />
+                    <Typography variant="body-small" class="opacity-50">
+                      {{ question.host.name }} said
+                    </Typography>
+                  </div>
+                </Stack>
+              </template>
+
+              <Stack space="medium" class="py-3">
                 <div class="grid grid-cols-2 gap-4">
-                  <div class="p-3" v-for="host in hosts" :key="host.id">
+                  <div class="p-6" v-for="host in hosts" :key="host.id">
                     <button
                       :style="{ backgroundColor: host.color }"
                       class="w-3/4 mx-auto flex items-center justify-center p-3 rounded-full group shadow-md aspect-square transition-all duration-300"
