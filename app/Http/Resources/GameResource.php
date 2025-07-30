@@ -33,6 +33,7 @@ class GameResource extends JsonResource
             'votableHost1' => $this->votableHost1,
             'votableHost2' => $this->votableHost2,
             'votableHosts' => $this->votableHosts,
+            'votes' => $this->whenLoaded('votes'),
         ];
     }
 }

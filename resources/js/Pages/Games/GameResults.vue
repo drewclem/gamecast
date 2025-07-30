@@ -2,6 +2,7 @@
 import { Head } from '@inertiajs/vue3'
 import Typography from '@/Stencil/Typography.vue'
 import Avatar from '@/Stencil/Avatar.vue'
+import Stack from '@/Stencil/Stack.vue'
 
 const props = defineProps({
   game: {
@@ -28,21 +29,60 @@ const isWinningHost = (question, hostId) => {
 
 <template>
   <Head :title="`Analytics - ${game.data.title}`" />
-  <div class="min-h-screen bg-yellow-100 flex flex-col p-6 md:p-8 lg:p-12">
-    <div class="mb-6">
-      <Typography variant="billboard" class="text-center text-gray-900">
-        {{ game.data.title }}
-      </Typography>
-    </div>
-
-    <div>
-      <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+  <div class="min-h-screen flex flex-col p-6 md:p-8 lg:p-12">
+    <div class="grid grid-cols-4 gap-12">
+      <div class="col-span-1">
+        <div class="p-3 rounded-md shadow-md bg-white">
+          <Stack space="small">
+            <Typography variant="h2" class="text-gray-800">
+              {{ game.data.title }}
+            </Typography>
+            <table>
+              <tbody>
+                <tr>
+                  <td>
+                    <Typography variant="body-lg" class="text-gray-800"> Total votes:</Typography>
+                  </td>
+                  <td class="text-right font-semibold">
+                    {{ game.data.votes.length }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <ul class="flex flex-col gap-4">
+              <li v-for="host in votableHosts" :key="host.id" class="relative">
+                <div
+                  class="absolute bg-red-500 h-full rounded-full"
+                  :style="{
+                    width: `${(host.votes.length / game.data.votes.length) * 100}%`,
+                    backgroundColor: `${host.color}`,
+                  }"
+                />
+                <div class="relative flex items-center justify-between w-full">
+                  <div class="flex items-center gap-2">
+                    <img :src="asset(host.avatar)" class="h-16 w-auto" />
+                    <Typography class="text-white font-bold" variant="body-lg"
+                      >{{
+                        Math.round((host.votes.length / game.data.votes.length) * 100)
+                      }}%</Typography
+                    >
+                  </div>
+                  <Typography variant="body-lg" class="text-gray-800">
+                    {{ host.votes.length }}
+                  </Typography>
+                </div>
+              </li>
+            </ul>
+          </Stack>
+        </div>
+      </div>
+      <ul class="col-span-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <li
           v-for="question in game.data.questions"
           :key="question.id"
           class="bg-white shadow-lg p-4 rounded-md"
         >
-          <Typography variant="h2" class="text-gray-800 mb-6">
+          <Typography variant="h3" class="text-gray-800 mb-6">
             {{ question.question }}
           </Typography>
           <ul class="flex flex-col gap-4">
@@ -50,15 +90,24 @@ const isWinningHost = (question, hostId) => {
               v-for="host in votableHosts"
               :key="host.id"
               class="px-4 py-2 rounded-md"
-              :class="{ 'bg-green-100 border border-green-600': isWinningHost(question, host.id) }"
+              :class="{
+                'bg-green-100 border border-green-600 order-first': isWinningHost(
+                  question,
+                  host.id
+                ),
+              }"
             >
               <div class="flex items-center gap-2 relative">
                 <Avatar :src="asset(host.avatar)" />
                 <div>
-                  <Typography v-if="isWinningHost(question, host.id)" variant="body-small">
+                  <Typography
+                    v-if="isWinningHost(question, host.id)"
+                    variant="body-small"
+                    class="text-green-500"
+                  >
                     Winner
                   </Typography>
-                  <Typography>
+                  <Typography class="font-semibold">
                     {{ host.name }}
                   </Typography>
                   <Typography>

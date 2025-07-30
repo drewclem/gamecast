@@ -14,11 +14,13 @@ class ShowGameFinalController extends Controller
      */
     public function __invoke(Request $request, Game $game)
     {
-        $game->load(['questions.votes', 'questions.host']);
+        $game->load(['questions.votes', 'questions.host', 'votes', 'votableHost1.votes', 'votableHost2.votes']);
+
+        $hosts = $game->votableHosts;
 
         return Inertia::render('Games/GameResults', [
             'game' => GameResource::make($game),
-            'votableHosts' => $game->votableHosts,
+            'votableHosts' => $hosts,
         ]);
     }
 }
