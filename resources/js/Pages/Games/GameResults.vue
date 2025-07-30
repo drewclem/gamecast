@@ -3,6 +3,7 @@ import { Head } from '@inertiajs/vue3'
 import Typography from '@/Stencil/Typography.vue'
 import Avatar from '@/Stencil/Avatar.vue'
 import Stack from '@/Stencil/Stack.vue'
+import ApplicationLogo from '@/Components/ApplicationLogo.vue'
 
 const props = defineProps({
   game: {
@@ -29,10 +30,15 @@ const isWinningHost = (question, hostId) => {
 
 <template>
   <Head :title="`Analytics - ${game.data.title}`" />
-  <div class="min-h-screen flex flex-col p-6 md:p-8 lg:p-12">
-    <div class="grid grid-cols-4 gap-12">
+  <div class="min-h-screen flex flex-col space-y-6">
+    <header class="border-b border-gray-200">
+      <div class="container mx-auto flex items-center justify-between py-3">
+        <ApplicationLogo class="block w-10 fill-current text-gray-800" />
+      </div>
+    </header>
+    <div class="container mx-auto grid grid-cols-4 gap-12">
       <div class="col-span-1">
-        <div class="p-3 rounded-md shadow-md bg-white">
+        <div class="p-3 rounded-md shadow-md bg-white border border-gray-200">
           <Stack space="small">
             <Typography variant="h2" class="text-gray-800">
               {{ game.data.title }}
@@ -80,7 +86,7 @@ const isWinningHost = (question, hostId) => {
         <li
           v-for="question in game.data.questions"
           :key="question.id"
-          class="bg-white shadow-lg p-4 rounded-md"
+          class="bg-white border border-gray-200 shadow-lg p-4 rounded-md"
         >
           <Typography variant="h3" class="text-gray-800 mb-6">
             {{ question.question }}
