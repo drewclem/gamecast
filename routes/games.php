@@ -11,6 +11,7 @@ use App\Http\Controllers\StoreGameController;
 use App\Http\Controllers\StoreVoteController;
 use App\Http\Controllers\UpdateGameController;
 use App\Http\Controllers\DestroyGameController;
+use App\Http\Controllers\ShowGameFinalController;
 use App\Http\Controllers\ControlPanelGameController;
 use App\Http\Controllers\ShowGameAnalyticsController;
 use App\Http\Controllers\StoreGameQuestionController;
@@ -38,5 +39,6 @@ Route::middleware(['auth', 'verified'])->prefix('/games')->group(function () {
   Route::post('/{game}/questions/{question}/reset-votes', ResetQuestionVotesController::class)->name('games.questions.reset-votes')->withoutMiddleware(['auth', 'verified']);
 
   Route::get('/{game}/share', ShareGameController::class)->name('games.share')->withoutMiddleware(['auth', 'verified']);
-  Route::get('/{game}/analytics', ShowGameAnalyticsController::class)->name('games.analytics');
+  Route::get('/{game}/analytics', ShowGameAnalyticsController::class)->name('games.analytics')->withoutMiddleware(['auth', 'verified']);
+  Route::get('/{game}/final', ShowGameFinalController::class)->name('games.final')->withoutMiddleware(['auth', 'verified']);
 });

@@ -191,14 +191,14 @@ async function castVote(questionId, hostId) {
               class="py-3"
             >
               <template #title>
-                <Stack space="xsmall">
-                  <Typography>{{ question.question }}</Typography>
-                  <div class="flex items-center gap-2">
-                    <Avatar :src="asset(question.host.avatar)" size="xsmall" />
-                    <Typography variant="body-small" class="opacity-50">
-                      {{ question.host.name }} said
-                    </Typography>
-                  </div>
+                <Stack space="xsmall" class="relative">
+                  <Typography
+                    variant="body-small"
+                    class="absolute -top-3 left-0 opacity-75 whitespace-nowrap"
+                  >
+                    {{ question.host.name }} <span class="font-thin">says</span>
+                  </Typography>
+                  <Typography variant="body-lg">{{ question.question }}</Typography>
                 </Stack>
               </template>
 
@@ -206,7 +206,6 @@ async function castVote(questionId, hostId) {
                 <div class="grid grid-cols-2 gap-4">
                   <div class="p-6" v-for="host in hosts" :key="host.id">
                     <button
-                      :style="{ backgroundColor: host.color }"
                       class="w-full mx-auto flex items-center justify-center p-3 rounded-full group shadow-md aspect-square transition-all duration-300"
                       :class="{
                         'pointer-events-none opacity-50': hasVotedOnQuestion(question.id),
@@ -214,6 +213,8 @@ async function castVote(questionId, hostId) {
                           showVoteAnimation &&
                           votingQuestionId === question.id &&
                           animatingVoteHostId === host.id,
+                        'bg-green-500': question.host.id === host.id,
+                        'bg-red-500': question.host.id !== host.id,
                       }"
                       @click="castVote(question.id, host.id)"
                       :disabled="
@@ -226,8 +227,16 @@ async function castVote(questionId, hostId) {
                         :alt="host.name"
                         class="w-5/6 group-hover:scale-110 transition-all duration-300"
                       />
-                      <span class="sr-only">Vote for {{ host.name }}</span>
                     </button>
+                    <Typography
+                      class="text-center mt-2"
+                      :class="{
+                        'text-green-600': question.host.id === host.id,
+                        'text-red-600': question.host.id !== host.id,
+                      }"
+                    >
+                      {{ question.host.id === host.id ? 'Agree' : 'Disagree' }}
+                    </Typography>
                   </div>
                 </div>
 
