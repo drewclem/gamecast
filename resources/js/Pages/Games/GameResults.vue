@@ -73,7 +73,7 @@ const isWinningHost = (question, hostId) => {
                       }}%</Typography
                     >
                   </div>
-                  <Typography variant="body-lg" class="text-gray-800">
+                  <Typography variant="body-lg" class="font-bold">
                     {{ host.votes.length }}
                   </Typography>
                 </div>
@@ -86,12 +86,17 @@ const isWinningHost = (question, hostId) => {
         <li
           v-for="question in game.data.questions"
           :key="question.id"
-          class="bg-white border border-gray-200 shadow-lg p-4 rounded-md"
+          class="bg-white border border-gray-200 shadow-lg p-4 flex flex-col gap-4 rounded-md"
         >
-          <Typography variant="h2" class="text-gray-800 mb-6">
-            {{ question.question }}
-          </Typography>
-          <ul class="flex flex-col gap-4">
+          <Stack space="xxsmall">
+            <Typography variant="h2" class="text-gray-800">
+              {{ question.question }}
+            </Typography>
+            <Typography variant="body-small" class="opacity-50">{{
+              question.host.name
+            }}</Typography>
+          </Stack>
+          <ul class="flex flex-col gap-4 mt-auto">
             <li
               v-for="host in votableHosts"
               :key="host.id"
