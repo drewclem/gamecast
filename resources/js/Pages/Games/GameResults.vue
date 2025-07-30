@@ -30,15 +30,15 @@ const isWinningHost = (question, hostId) => {
 
 <template>
   <Head :title="`Analytics - ${game.data.title}`" />
-  <div class="min-h-screen flex flex-col space-y-6">
+  <div class="min-h-screen flex flex-col space-y-6 mb-24">
     <header class="border-b border-gray-200">
-      <div class="container mx-auto flex items-center justify-between py-3">
+      <div class="container mx-auto flex items-center justify-between px-6 md:px-0 py-3">
         <ApplicationLogo class="block w-10 fill-current text-gray-800" />
       </div>
     </header>
-    <div class="container mx-auto grid grid-cols-4 gap-12">
-      <div class="col-span-1">
-        <div class="p-3 rounded-md shadow-md bg-white border border-gray-200">
+    <div class="container mx-auto flex flex-col md:flex-row gap-6 px-6 md:px-0">
+      <div class="w-full md:w-1/4">
+        <div class="p-3 rounded-md shadow-md bg-white border border-gray-200 w-full">
           <Stack space="small">
             <Typography variant="h2" class="text-gray-800">
               {{ game.data.title }}
@@ -82,13 +82,13 @@ const isWinningHost = (question, hostId) => {
           </Stack>
         </div>
       </div>
-      <ul class="col-span-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <ul class="w-full md:w-3/4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <li
           v-for="question in game.data.questions"
           :key="question.id"
           class="bg-white border border-gray-200 shadow-lg p-4 rounded-md"
         >
-          <Typography variant="h3" class="text-gray-800 mb-6">
+          <Typography variant="h2" class="text-gray-800 mb-6">
             {{ question.question }}
           </Typography>
           <ul class="flex flex-col gap-4">
